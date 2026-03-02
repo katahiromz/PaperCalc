@@ -114,6 +114,8 @@ class AlgoDiv extends AlgoBase {
     let currentVal = 0n;
     let iy = origin_iy + 1;
     let isFirstDigit = true;
+    let lastRemIy = null; // 最後の余り行のiy
+    let lastRemIx = null; // 最後の余り行の右端ix（ループ時のix）
 
     let quotientDotDrawn = false;
 
@@ -209,6 +211,9 @@ class AlgoDiv extends AlgoBase {
         this.addCommand(['output', `${currentVal} 引く ${BigInt(q) * bVal} で ${remainder} あまりました。`]);
         this.addCommand(['step']);
 
+        lastRemIy = iy;
+        lastRemIx = ix;
+
         // --- 重要: remainder を次のループの currentVal に反映 ---
         currentVal = remainder;
 
@@ -265,11 +270,24 @@ class AlgoDiv extends AlgoBase {
     const quotient = quotientStr;
 
     // あまり（表示用に元スケールへ戻す）
+    // 条件: 除数が小数(bFracLen>0)かつ余りが非ゼロかつ余り行が描画済みの場合のみ、余り行に小数点を描画する
+    if (bFracLen > 0 && currentVal > 0n && lastRemIy !== null) {
+      const dotIx = lastRemIx - bFracLen + 1;
+      this.addCommand(['drawDot', dotIx, lastRemIy]);
+      this.setMapDot(dotIx, lastRemIy);
+      this.addCommand(['step']);
+    }
+
     let finalRemainder;
-    if (bFracLen === 0) {
-      finalRemainder = Number(currentVal);
-    } else {
+    if (lastRemIy !== null) {
+      // 余り行が描画済みの場合、内部マップから読み取る（fixAndReadRowNumber で補正済み値を使用）
+      const remStr = this.fixAndReadRowNumber(lastRemIy);
+      finalRemainder = remStr === '' ? 0 : parseFloat(remStr);
+    } else if (bFracLen > 0) {
+      // 余り行がない場合（例：商が0で除算ステップがなかった場合）は数値計算で求める
       finalRemainder = parseFloat((Number(currentVal) / (10 ** bFracLen)).toPrecision(15));
+    } else {
+      finalRemainder = Number(currentVal);
     }
 
     let answer;
