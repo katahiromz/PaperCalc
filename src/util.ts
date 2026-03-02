@@ -1,14 +1,21 @@
-// util.js --- 便利な定義
+// util.ts --- 便利な定義
 // Author: katahiromz
 // License: MIT
 
+"use strict";
+
 // 1文字の数字か？
-function isDigit(ch) {
+function isDigit(ch: string): boolean {
   return ch.length == 1 && '0' <= ch && ch <= '9';
 }
 
 // 文字情報
-const digitInfo = {
+interface DigitEntry {
+  img: HTMLImageElement | null;
+  src: string;
+}
+
+const digitInfo: { [key: string]: DigitEntry } = {
   '0': { img: null, src: 'img/0.svg' },
   '1': { img: null, src: 'img/1.svg' },
   '2': { img: null, src: 'img/2.svg' },
@@ -54,7 +61,7 @@ const digitInfo = {
 };
 
 // 画像を読み込む
-function loadImage(key) {
+function loadImage(key: string): Promise<void> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve();
@@ -64,7 +71,7 @@ function loadImage(key) {
   });
 }
 
-const replaceJapaneseNumericChars = (numStr) => {
+const replaceJapaneseNumericChars = (numStr: string): string => {
   numStr = numStr.replaceAll('　', ' '); // U+3000
   numStr = numStr.replaceAll('０', '0');
   numStr = numStr.replaceAll('１', '1');
@@ -86,8 +93,17 @@ const replaceJapaneseNumericChars = (numStr) => {
   return numStr;
 };
 
+interface NumberInfo {
+  numeric: number;
+  numStr: string;
+  integer: string;
+  int_len: number;
+  fraction: string;
+  frac_len: number;
+}
+
 // 数値の情報
-const getNumberInfo = (numStr) => {
+const getNumberInfo = (numStr: string): NumberInfo | null => {
   console.assert(typeof numStr === 'string');
   numStr = numStr.trim();
   numStr = replaceJapaneseNumericChars(numStr);
@@ -105,7 +121,7 @@ const getNumberInfo = (numStr) => {
 };
 
 // 数値文字列の整形。今回は筆算なので、符号付きの数値は扱わない。
-const normalizeUnsignedNumber = (numStr) => {
+const normalizeUnsignedNumber = (numStr: string): string => {
   console.assert(typeof numStr === 'string');
   numStr = replaceJapaneseNumericChars(numStr);
   numStr = numStr.replaceAll(' ', '');
@@ -127,7 +143,7 @@ const normalizeUnsignedNumber = (numStr) => {
 };
 
 // normalizeUnsignedNumber関数のテストエントリ
-const normalizeUnsignedNumberTestEntry = (numStr, trueAnswer) => {
+const normalizeUnsignedNumberTestEntry = (numStr: string, trueAnswer: string): boolean => {
   let answer = normalizeUnsignedNumber(numStr);
   if (answer === trueAnswer)
     return true;
@@ -136,7 +152,7 @@ const normalizeUnsignedNumberTestEntry = (numStr, trueAnswer) => {
 }
 
 // normalizeUnsignedNumber関数の単体テスト
-const normalizeUnsignedNumberUnitTest = () => {
+const normalizeUnsignedNumberUnitTest = (): void => {
   console.assert(normalizeUnsignedNumberTestEntry('', '0'));
   console.assert(normalizeUnsignedNumberTestEntry('0', '0'));
   console.assert(normalizeUnsignedNumberTestEntry('0.', '0'));
@@ -163,7 +179,7 @@ const normalizeUnsignedNumberUnitTest = () => {
 normalizeUnsignedNumberUnitTest();
 
 // 特殊文字を置き換える
-function htmlspecialchars(str){
+function htmlspecialchars(str: string): string {
   return (str + '').replace(/&/g, '&amp;')
                    .replace(/"/g, '&quot;')
                    .replace(/'/g, '&#039;')
@@ -175,7 +191,7 @@ function htmlspecialchars(str){
  * 文字列として表現された2つの正の数 a, b を比較する
  * @return {number} a > b なら 1, a < b なら -1, 等しければ 0
  */
-function comparePositiveNumbers(a, b) {
+function comparePositiveNumbers(a: string, b: string): number {
   // 正規化（前後の余計な0を取り除く）
   const normA = normalizeUnsignedNumber(a);
   const normB = normalizeUnsignedNumber(b);
