@@ -114,6 +114,8 @@ class AlgoDiv extends AlgoBase {
     let currentVal = 0n;
     let iy = origin_iy + 1;
     let isFirstDigit = true;
+    let lastRemIy = null; // 最後の余り行のiy
+    let lastRemIx = null; // 最後の余り行の右端ix（ループ時のix）
 
     let quotientDotDrawn = false;
 
@@ -209,6 +211,9 @@ class AlgoDiv extends AlgoBase {
         this.addCommand(['output', `${currentVal} 引く ${BigInt(q) * bVal} で ${remainder} あまりました。`]);
         this.addCommand(['step']);
 
+        lastRemIy = iy;
+        lastRemIx = ix;
+
         // --- 重要: remainder を次のループの currentVal に反映 ---
         currentVal = remainder;
 
@@ -265,20 +270,41 @@ class AlgoDiv extends AlgoBase {
     const quotient = quotientStr;
 
     // あまり（表示用に元スケールへ戻す）
-    let finalRemainder;
-    if (bFracLen === 0) {
-      finalRemainder = Number(currentVal);
+    // 条件: 除数が小数(bFracLen>0)かつ余りが非ゼロかつ余り行が描画済みの場合のみ、余り行に小数点を描画する
+    if (bFracLen > 0 && currentVal > 0n && lastRemIy !== null) {
+      const dotIx = lastRemIx - bFracLen + 1;
+      this.addCommand(['drawDot', dotIx, lastRemIy]);
+      this.setMapDot(dotIx, lastRemIy);
+      this.addCommand(['step']);
+    }
+
+    // 浮動小数点誤差を避けるため、あまりは文字列として扱う
+    let finalRemainderStr;
+    if (lastRemIy !== null) {
+      // 余り行が描画済みの場合、内部マップから読み取る（fixAndReadRowNumber で補正済み値を使用）
+      finalRemainderStr = this.fixAndReadRowNumber(lastRemIy);
+    } else if (bFracLen > 0) {
+      // 余り行がない場合（例：商が0で除算ステップがなかった場合）はBigInt演算で求める（浮動小数点誤差を避ける）
+      const power = BigInt(10) ** BigInt(bFracLen);
+      const whole = currentVal / power;
+      const frac = currentVal % power;
+      if (frac === 0n) {
+        finalRemainderStr = whole.toString();
+      } else {
+        const fracStr = frac.toString().padStart(bFracLen, '0').replace(/0+$/, '');
+        finalRemainderStr = `${whole}.${fracStr}`;
+      }
     } else {
-      finalRemainder = parseFloat((Number(currentVal) / (10 ** bFracLen)).toPrecision(15));
+      finalRemainderStr = currentVal.toString();
     }
 
     let answer;
-    if (finalRemainder === 0) {
+    if (finalRemainderStr === '' || finalRemainderStr === '0') {
       answer = quotient;
       this.addCommand(['output', `答えは ${quotient} です。あまりはありません。`]);
     } else {
-      answer = `${quotient} … ${finalRemainder}`;
-      this.addCommand(['output', `商は ${quotient} 、あまりは ${finalRemainder} です。`]);
+      answer = `${quotient} … ${finalRemainderStr}`;
+      this.addCommand(['output', `商は ${quotient} 、あまりは ${finalRemainderStr} です。`]);
     }
     this.answer = answer;
     {
