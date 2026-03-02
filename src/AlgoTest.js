@@ -144,12 +144,11 @@ class AlgoTest extends AlgoBase {
 
   doTest4() {
     for (let iy = 0; iy < 12; ++iy) {
-      this.autoPutDigitsEx('9', iy);
+      this.autoPutDigitsEx('99', iy);
     }
     this.autoDigitAdd(0, 11);
     let numStr = this.readRowNumber(12);
-    console.log("numStr:", numStr);
-    console.assert(numStr === '108');
+    console.assert(numStr === '1188');
   }
 
   // コマンドの構築
