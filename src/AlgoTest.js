@@ -142,10 +142,19 @@ class AlgoTest extends AlgoBase {
     this.autoDigitAdd(0, 1);
   }
 
+  doTest4() {
+    for (let iy = 0; iy < 12; ++iy) {
+      this.autoPutDigitsEx('9', iy);
+    }
+    this.autoDigitAdd(0, 11);
+    let numStr = this.readRowNumber(12);
+    console.assert(numStr === '108');
+  }
+
   // コマンドの構築
   buildCommands() {
     this.clearMapping();
-    this.doTest2();
+    this.doTest4();
   }
 
   testEntry(a, b, answer) {
@@ -179,6 +188,8 @@ class AlgoTest extends AlgoBase {
     this.doTest1();
     this.reset();
     this.doTest2();
+    this.reset();
+    this.doTest4();
     this.reset();
   }
 }
