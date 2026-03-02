@@ -102,7 +102,7 @@ class AlgoDiv extends AlgoBase {
       this.addCommand(['step']);
     }
 
-    const extraDigits = parseInt(c) || 0;
+    const extraDigits = parseInt(c) || 0; // 仕様A: 小数点以下ちょうど c 桁
     const totalDigits = aDigits.length + extraDigits;
 
     this.addCommand(['output', `図のように線を描いてください。`]);
@@ -116,6 +116,33 @@ class AlgoDiv extends AlgoBase {
     let isFirstDigit = true;
 
     let quotientDotDrawn = false;
+
+    // --- 商は i(処理回数)ベースで記録する（答え文字列生成用） ---
+    const quotientDigits = new Array(totalDigits).fill(null); // '0'..'9' or null
+    let dotPos = null; // i基準。dotPos の前に '.' を入れる
+
+    // 商の小数点位置を決定
+    if (aDotIdx < aDigits.length) {
+      dotPos = aDotIdx;
+    } else if (extraDigits > 0) {
+      dotPos = aDigits.length;
+    }
+
+    const putQuotientDigit = (i, ix, digitChar) => {
+      this.addCommand(['drawDigit', ix, origin_iy, digitChar]);
+      this.setMapDigit(ix, origin_iy, digitChar);
+      quotientDigits[i] = digitChar;
+    };
+
+    const putQuotientDotIfNeeded = () => {
+      if (dotPos === null) return;
+      if (quotientDotDrawn) return;
+      const dotIx = aStartIx + dotPos;
+      this.addCommand(['drawDot', dotIx, origin_iy]);
+      this.setMapDot(dotIx, origin_iy);
+      quotientDotDrawn = true;
+      this.addCommand(['step']);
+    };
 
     for (let i = 0; i < totalDigits; i++) {
       const ix = aStartIx + i;
@@ -138,31 +165,22 @@ class AlgoDiv extends AlgoBase {
         this.addCommand(['step']);
       }
 
-      // 商の小数点描画
-      if (!quotientDotDrawn && aDotIdx < aDigits.length && i === aDotIdx) {
-        this.addCommand(['drawDot', aStartIx + aDotIdx, origin_iy]);
-        this.setMapDot(aStartIx + aDotIdx, origin_iy);
-        quotientDotDrawn = true;
-        this.addCommand(['step']);
-      }
-
-      if (!quotientDotDrawn && i === aDigits.length && extraDigits > 0) {
-        this.addCommand(['output', `あまりを小数として計算するため、商に小数点を書きます。`]);
-        this.addCommand(['drawDot', aStartIx + aDigits.length, origin_iy]);
-        this.setMapDot(aStartIx + aDigits.length, origin_iy);
-        quotientDotDrawn = true;
-        this.addCommand(['step']);
+      // 商の小数点描画（必要な位置で描く）
+      if (!quotientDotDrawn && dotPos !== null && i === dotPos) {
+        putQuotientDotIfNeeded();
       }
 
       if (currentVal >= bVal) {
         const q = Math.floor(currentVal / bVal);
         const qChar = q.toString();
 
+        // autoDigitMul は「1桁×多桁」なので q は 0..9 のはず
+        console.assert(qChar.length === 1);
+
         this.addCommand(['output', `${currentVal} の中に ${bVal} は ${q} 個あります。`]);
 
         // 商をセット
-        this.addCommand(['drawDigit', ix, origin_iy, qChar]);
-        this.setMapDigit(ix, origin_iy, qChar);
+        putQuotientDigit(i, ix, qChar);
         isFirstDigit = false;
 
         // 掛け算
@@ -191,27 +209,62 @@ class AlgoDiv extends AlgoBase {
         this.addCommand(['output', `${currentVal} 引く ${q * bVal} で ${remainder} あまりました。`]);
         this.addCommand(['step']);
 
+        // --- 重要: remainder を次のループの currentVal に反映 ---
         currentVal = remainder;
 
-        if (currentVal === 0 && extraDigits > 0) break;
+        // currentVal が 0 になっても、被除数(aDigits)の残り桁がある間は打ち切らない
+        if (currentVal === 0 && extraDigits > 0 && i >= aDigits.length) {
+          break;
+        }
       } else {
+        // 0 を商に書くかどうかの条件は元コード踏襲
         if (!isFirstDigit || i >= aDotIdx - 1) {
-          this.addCommand(['drawDigit', ix, origin_iy, '0']);
-          this.setMapDigit(ix, origin_iy, '0');
+          putQuotientDigit(i, ix, '0');
           if (isFirstDigit) isFirstDigit = false;
         }
       }
     }
 
-    // 小数点の処理（まだ描かれていない場合）
-    if (!quotientDotDrawn && aDotIdx < aDigits.length) {
-      this.addCommand(['drawDot', aStartIx + aDotIdx, origin_iy]);
-      this.setMapDot(aStartIx + aDotIdx, origin_iy);
-      this.addCommand(['step']);
+    // 商の小数点の処理（まだ描かれていない場合）
+    if (!quotientDotDrawn) {
+      putQuotientDotIfNeeded();
     }
 
-    const quotient = this.fixAndReadRowNumber(origin_iy, false, true);
+    // --- 商文字列を quotientDigits + dotPos から構築する ---
+    // 商の表示開始位置（整数部の先頭の不要な0を避ける）
+    let first = 0;
+    for (let i = 0; i < totalDigits; i++) {
+      if (quotientDigits[i] !== null) { first = i; break; }
+      if (i === totalDigits - 1) first = totalDigits - 1;
+    }
+    // dot があるなら、dotの左に最低1桁必要
+    if (dotPos !== null) {
+      first = Math.min(first, Math.max(0, dotPos - 1));
+    }
 
+    // null は「その桁は書かなかった」だが、答えとしては 0 扱いにする
+    const filled = quotientDigits.map(d => (d === null ? '0' : d));
+
+    let quotientStr = '';
+    if (dotPos === null) {
+      quotientStr = filled.slice(first).join('');
+      quotientStr = quotientStr.replace(/^0+(?=\d)/, '') || '0';
+    } else {
+      // 整数部（dotより左）
+      let intPart = filled.slice(first, dotPos).join('');
+      intPart = intPart.replace(/^0+(?=\d)/, '') || '0';
+
+      // 小数部（dotより右）は仕様Aで必ず extraDigits 桁
+      let fracPart = filled.slice(dotPos, dotPos + extraDigits).join('');
+      if (fracPart.length < extraDigits) fracPart = fracPart.padEnd(extraDigits, '0');
+      if (fracPart.length > extraDigits) fracPart = fracPart.substring(0, extraDigits);
+
+      quotientStr = `${intPart}.${fracPart}`;
+    }
+
+    const quotient = quotientStr;
+
+    // あまり（表示用に元スケールへ戻す）
     let finalRemainder = currentVal / (10 ** bFracLen);
     finalRemainder = parseFloat(finalRemainder.toPrecision(15));
 
@@ -271,9 +324,13 @@ class AlgoDiv extends AlgoBase {
     console.assert(this.testEntryEx('10', '40', '0.250', "3")); // FIXME
     console.assert(this.testEntryEx('10', '40', '0.2 … 20', "1"));
     console.assert(this.testEntryEx('0.1', '0.4', '0.2 … 0.2', "1"));
-    console.assert(this.testEntryEx('0.1', '2', '0.05', '4'));
+
+    // 仕様A: 小数点以下はちょうど4桁
+    console.assert(this.testEntryEx('0.1', '2', '0.0500', '4'));
+
     console.assert(this.testEntryEx('999', '0.1', '9990', '0'));
     console.assert(this.testEntryEx('999', '0.1', '9990.00', '2')); // FIXME
+
     // 【ちびむすより引用】ここから
     console.assert(this.testEntryEx('63', '2', '31 … 1'));
     console.assert(this.testEntryEx('88', '4', '22'));
@@ -285,6 +342,7 @@ class AlgoDiv extends AlgoBase {
     console.assert(this.testEntryEx('75', '7', '10 … 5'));
     console.assert(this.testEntryEx('43', '2', '21 … 1'));
     // 【ちびむすより引用】ここまで
+
     // 【ちびむすより引用】ここから
     console.assert(this.testEntryEx('21', '2', '10 … 1'));
     console.assert(this.testEntryEx('83', '2', '41 … 1'));
@@ -296,6 +354,7 @@ class AlgoDiv extends AlgoBase {
     console.assert(this.testEntryEx('64', '6', '10 … 4'));
     console.assert(this.testEntryEx('68', '3', '22 … 2'));
     // 【ちびむすより引用】ここまで
+
     // 【ちびむすより引用】ここから
     console.assert(this.testEntryEx('168', '22', '7 … 14'));
     console.assert(this.testEntryEx('107', '32', '3 … 11'));
@@ -310,6 +369,7 @@ class AlgoDiv extends AlgoBase {
     console.assert(this.testEntryEx('163', '26', '6 … 7'));
     console.assert(this.testEntryEx('380', '85', '4 … 40'));
     // 【ちびむすより引用】ここまで
+
     this.reset();
   }
 }
