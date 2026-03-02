@@ -314,6 +314,7 @@ class AlgoBase {
   }
 
   get_columns(iy) {
+    const rowMap = this.mapping.get(iy);
     if (!rowMap || rowMap.size === 0) return undefined;
     const min_x = this.min_x(iy), max_x = this.max_x(iy);
     let prev_ix = null;
@@ -328,14 +329,14 @@ class AlgoBase {
   }
 
   min_x_by_colunm(iy, iColumn) {
-    let columns = get_columns(iy);
+    let columns = this.get_columns(iy);
     if (columns === undefined)
       return undefined;
     return this.min_x_by_ix(columns[iColumn]);
   }
 
   max_x_by_ix(iy, iColumn) {
-    let columns = get_columns(iy);
+    let columns = this.get_columns(iy);
     if (columns === undefined)
       return undefined;
     return this.max_x_by_ix(columns[iColumn]);
@@ -430,50 +431,53 @@ class AlgoBase {
 
     let answer_iy = iy1 + 1;
     let carry = 0;
+
     for (let ix = max_ix; ix >= min_ix; --ix) {
+      // この桁にある数の合計
       let nums = [];
       for (let iy = iy0; iy <= iy1; ++iy) {
         let digit0 = this.getMapDigit(ix, iy);
-        if (digit0 !== undefined) {
-          nums.push(digit0);
-        }
+        if (digit0 !== undefined) nums.push(digit0);
       }
 
       let msg = '';
-      let index = 0, sum = 0;
+      let index = 0;
+      let sum = carry; // ★ carry は「この桁」に足してから計算する（前の桁から来た繰り上がり）
+
       for (let num of nums) {
-        if (index === 0) {
-          msg += num;
-        } else {
-          msg += ` 足す ${num}`;
-        }
-        sum += parseInt(num);
+        if (index === 0) msg += num;
+        else msg += ` 足す ${num}`;
+        sum += parseInt(num, 10);
         ++index;
       }
 
       if (carry > 0) {
-        msg += ' 足す ';
+        // 説明文としても carry を表記
+        if (nums.length > 0) msg += ' 足す ';
         msg += carry;
-        sum += carry;
       }
-      carry = Math.floor(sum / 10);
 
-      msg += ` は ${sum} です。`
-      if (carry > 0)
-        msg += `くり上がりは ${carry} です。`;
+      // 次の桁へ送る carry を計算
+      let nextCarry = Math.floor(sum / 10);
+      let digit = (sum % 10).toString();
+
+      msg += ` は ${sum} です。`;
+      if (nextCarry > 0) msg += `くり上がりは ${nextCarry} です。`;
 
       this.addCommand(['output', msg]);
 
-      if (carry > 0)
-        this.addCommand(['drawCarry', ix, answer_iy, carry.toString()]);
-      this.addCommand(['drawDigit', ix, answer_iy, (sum % 10).toString()]);
-      this.mapDigit(ix, answer_iy, (sum % 10).toString());
+      // ★ 繰り上がりは「次の桁」に行くものだが、表示はこの桁の上に描くUIなのでここで描画してOK
+      if (nextCarry > 0) this.addCommand(['drawCarry', ix, answer_iy, nextCarry.toString()]);
+
+      this.addCommand(['drawDigit', ix, answer_iy, digit]);
+      this.mapDigit(ix, answer_iy, digit);
       this.addCommand(['step']);
+
+      carry = nextCarry;
     }
 
     if (carry > 0) {
-      let msg = `くり上がりをわすれずに。`
-      this.addCommand(['output', msg]);
+      this.addCommand(['output', `くり上がりをわすれずに。`]);
       this.addCommand(['drawDigit', min_ix - 1, answer_iy, carry.toString()]);
       this.mapDigit(min_ix - 1, answer_iy, carry.toString());
       this.addCommand(['step']);
