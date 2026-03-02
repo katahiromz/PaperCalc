@@ -285,7 +285,8 @@ class AlgoDiv extends AlgoBase {
       finalRemainderStr = this.fixAndReadRowNumber(lastRemIy);
     } else if (bFracLen > 0) {
       // 余り行がない場合（例：商が0で除算ステップがなかった場合）はBigInt演算で求める（浮動小数点誤差を避ける）
-      const power = BigInt(10) ** BigInt(bFracLen);
+      let power = BigInt(1);
+      for (let i = 0; i < bFracLen; ++i) power *= BigInt(10);
       const whole = currentVal / power;
       const frac = currentVal % power;
       if (frac === 0n) {
