@@ -321,15 +321,12 @@ class AlgoDiv extends AlgoBase {
     console.assert(this.testEntryEx('10', '0.4', '25'));
     console.assert(this.testEntryEx('10', '40', '0 … 10'));
     console.assert(this.testEntryEx('10', '40', '0.25', "2"));
-    console.assert(this.testEntryEx('10', '40', '0.250', "3")); // FIXME
+    console.assert(this.testEntryEx('10', '40', '0.250', "3"));
     console.assert(this.testEntryEx('10', '40', '0.2 … 20', "1"));
     console.assert(this.testEntryEx('0.1', '0.4', '0.2 … 0.2', "1"));
-
-    // 仕様A: 小数点以下はちょうど4桁
     console.assert(this.testEntryEx('0.1', '2', '0.0500', '4'));
-
     console.assert(this.testEntryEx('999', '0.1', '9990', '0'));
-    console.assert(this.testEntryEx('999', '0.1', '9990.00', '2')); // FIXME
+    console.assert(this.testEntryEx('999', '0.1', '9990.00', '2'));
 
     // 【ちびむすより引用】ここから
     console.assert(this.testEntryEx('63', '2', '31 … 1'));
