@@ -327,6 +327,7 @@ class AlgoDiv extends AlgoBase {
     console.assert(this.testEntryEx('0.1', '2', '0.0500', '4'));
     console.assert(this.testEntryEx('999', '0.1', '9990', '0'));
     console.assert(this.testEntryEx('999', '0.1', '9990.00', '2'));
+    console.assert(this.testEntryEx('99999999999999999999', '99999999999999999999', '1.0', '1')); // FIXME
 
     // 【ちびむすより引用】ここから
     console.assert(this.testEntryEx('63', '2', '31 … 1'));
