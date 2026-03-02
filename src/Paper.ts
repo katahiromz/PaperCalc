@@ -1,14 +1,27 @@
-// Paper.js --- 無限に広がりうる紙
+// Paper.ts --- 無限に広がりうる紙
 // Author: katahiromz, Improved by Gemini
 // License: MIT
 
 "use strict";
 
 class Paper {
-  static g_sizingOnly = false;
-  static g_minimal = false;
+  static g_sizingOnly: boolean = false;
+  static g_minimal: boolean = false;
 
-  constructor(width_ = 1, height_ = 1, bgColor_ = 'white') {
+  canvas: HTMLCanvasElement;
+  originX: number;
+  originY: number;
+  cx: number;
+  cy: number;
+  bgColor: string;
+  lineWidth: number;
+  strokeStyle: string;
+  fillStyle: string;
+  font: string;
+  textAlign: CanvasTextAlign;
+  textBaseline: CanvasTextBaseline;
+
+  constructor(width_: number = 1, height_: number = 1, bgColor_: string = 'white') {
     this.canvas = document.createElement('canvas');
     this.originX = 0;
     this.originY = 0;
@@ -24,7 +37,7 @@ class Paper {
     this.setSize(width_, height_);
   }
 
-  setSize(width_, height_) {
+  setSize(width_: number, height_: number): this {
     if (width_ <= 0 || height_ <= 0) return this;
     this.cx = width_;
     this.cy = height_;
@@ -34,8 +47,8 @@ class Paper {
     return this;
   }
 
-  clear() {
-    const ctx = this.canvas.getContext('2d');
+  clear(): this {
+    const ctx = this.canvas.getContext('2d')!;
     if (this.bgColor) {
       ctx.fillStyle = this.bgColor;
       ctx.fillRect(0, 0, this.cx, this.cy);
@@ -46,31 +59,29 @@ class Paper {
   }
 
   // 現在のオフセットを考慮したコンテキストを取得
-  getContext(contentType = '2d', options = {}) {
-    const ctx = this.canvas.getContext(contentType, options);
-    if (contentType === '2d') {
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.translate(-this.originX, -this.originY);
-    }
+  getContext(contentType: '2d' = '2d', options: CanvasRenderingContext2DSettings = {}): CanvasRenderingContext2D {
+    const ctx = this.canvas.getContext(contentType, options)!;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.translate(-this.originX, -this.originY);
     return ctx;
   }
 
   // 座標変換
-  translateX(x) { return x - this.originX; }
-  untranslateX(x) { return x + this.originX; }
-  translateY(y) { return y - this.originY; }
-  untranslateY(y) { return y + this.originY; }
-  translate(x, y) { return [this.translateX(x), this.translateY(y)]; }
-  untranslate(x, y) { return [this.untranslateX(x), this.untranslateY(y)]; }
+  translateX(x: number): number { return x - this.originX; }
+  untranslateX(x: number): number { return x + this.originX; }
+  translateY(y: number): number { return y - this.originY; }
+  untranslateY(y: number): number { return y + this.originY; }
+  translate(x: number, y: number): [number, number] { return [this.translateX(x), this.translateY(y)]; }
+  untranslate(x: number, y: number): [number, number] { return [this.untranslateX(x), this.untranslateY(y)]; }
 
   // 中心点
-  centerPoint(trans = false) {
+  centerPoint(trans: boolean = false): [number, number] {
     if (trans) return this.translate(this.cx / 2, this.cy / 2);
     return [this.cx / 2, this.cy / 2];
   }
 
   // 領域を確保する
-  ensureRect(x, y, w, h) {
+  ensureRect(x: number, y: number, w: number, h: number): this {
     // 1. 描画対象の矩形範囲を計算
     let x0 = Math.min(x, x + w), y0 = Math.min(y, y + h);
     let x1 = Math.max(x, x + w), y1 = Math.max(y, y + h);
@@ -101,7 +112,7 @@ class Paper {
     const tempCanvas = document.createElement('canvas');
     tempCanvas.width = this.cx;
     tempCanvas.height = this.cy;
-    tempCanvas.getContext('2d').drawImage(this.canvas, 0, 0);
+    tempCanvas.getContext('2d')!.drawImage(this.canvas, 0, 0);
 
     this.cx = newWidth;
     this.cy = newHeight;
@@ -113,7 +124,7 @@ class Paper {
     // 4. 元の絵を新しい位置（オフセット）に合わせて再描画
     const offsetX = curLeft - newLeft;
     const offsetY = curTop - newTop;
-    this.canvas.getContext('2d').drawImage(tempCanvas, offsetX, offsetY);
+    this.canvas.getContext('2d')!.drawImage(tempCanvas, offsetX, offsetY);
 
     this.originX = newLeft;
     this.originY = newTop;
@@ -121,8 +132,8 @@ class Paper {
     return this;
   }
 
-  drawImage(image, ...args) {
-    let sx, sy, sW, sH, dx, dy, dW, dH;
+  drawImage(image: Paper | HTMLImageElement | HTMLCanvasElement, ...args: number[]): this {
+    let sx: number, sy: number, sW: number, sH: number, dx: number, dy: number, dW: number, dH: number;
     const img = (image instanceof Paper) ? image.canvas : image;
 
     if (args.length === 2) { // dx, dy
@@ -142,7 +153,7 @@ class Paper {
     return this;
   }
 
-  line(x0, y0, x1, y1) {
+  line(x0: number, y0: number, x1: number, y1: number): this {
     const lw = this.lineWidth;
     this.ensureRect(Math.min(x0, x1) - lw, Math.min(y0, y1) - lw, Math.abs(x1 - x0) + lw * 2, Math.abs(y1 - y0) + lw * 2);
 
@@ -159,7 +170,7 @@ class Paper {
     return this;
   }
 
-  strokeRect(x, y, w, h) {
+  strokeRect(x: number, y: number, w: number, h: number): this {
     const lw = this.lineWidth;
     this.ensureRect(x - lw, y - lw, w + lw * 2, h + lw * 2);
     if (!Paper.g_sizingOnly) {
@@ -171,7 +182,7 @@ class Paper {
     return this;
   }
 
-  fillRect(x, y, w, h) {
+  fillRect(x: number, y: number, w: number, h: number): this {
     this.ensureRect(x, y, w, h);
     if (!Paper.g_sizingOnly) {
       const ctx = this.getContext();
@@ -181,7 +192,7 @@ class Paper {
     return this;
   }
 
-  strokeCircle(x, y, radius) {
+  strokeCircle(x: number, y: number, radius: number): this {
     const lw = this.lineWidth;
     const r = radius + lw;
     this.ensureRect(x - r, y - r, r * 2, r * 2);
@@ -196,7 +207,7 @@ class Paper {
     return this;
   }
 
-  fillCircle(x, y, radius) {
+  fillCircle(x: number, y: number, radius: number): this {
     this.ensureRect(x - radius, y - radius, radius * 2, radius * 2);
     if (!Paper.g_sizingOnly) {
       const ctx = this.getContext();
@@ -209,7 +220,7 @@ class Paper {
   }
 
   // テキスト描画
-  fillText(text, x, y, maxWidth = undefined) {
+  fillText(text: string, x: number, y: number, maxWidth: number | undefined = undefined): this {
     const ctx = this.getContext();
     ctx.font = this.font;
     ctx.textAlign = this.textAlign;
