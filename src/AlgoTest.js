@@ -148,6 +148,7 @@ class AlgoTest extends AlgoBase {
     }
     this.autoDigitAdd(0, 11);
     let numStr = this.readRowNumber(12);
+    console.log("numStr:", numStr);
     console.assert(numStr === '108');
   }
 

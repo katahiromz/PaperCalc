@@ -478,8 +478,16 @@ class AlgoBase {
 
     if (carry > 0) {
       this.addCommand(['output', `くり上がりをわすれずに。`]);
-      this.addCommand(['drawDigit', min_ix - 1, answer_iy, carry.toString()]);
-      this.mapDigit(min_ix - 1, answer_iy, carry.toString());
+
+      // carry が 2桁以上（例: 10）でも正しく左に展開して書く
+      const carryStr = carry.toString(); // 例: "10"
+      for (let k = 0; k < carryStr.length; ++k) {
+        const digit = carryStr[carryStr.length - 1 - k];
+        const ix = (min_ix - 1) - k;
+        this.addCommand(['drawDigit', ix, answer_iy, digit]);
+        this.mapDigit(ix, answer_iy, digit);
+      }
+
       this.addCommand(['step']);
     }
   }
