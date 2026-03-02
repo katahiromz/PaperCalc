@@ -282,7 +282,7 @@ class AlgoDiv extends AlgoBase {
     }
     this.answer = answer;
     {
-      const text = `${a} / ${b} = ${answer}`;
+      const text = `${a} ÷ ${b} = ${answer}`;
       const { x, y } = this.convert3(0, iy + 2);
       this.addCommand(['drawCenterText', y, text]);
     }
