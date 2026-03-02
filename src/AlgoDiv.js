@@ -278,25 +278,33 @@ class AlgoDiv extends AlgoBase {
       this.addCommand(['step']);
     }
 
-    let finalRemainder;
+    // 浮動小数点誤差を避けるため、あまりは文字列として扱う
+    let finalRemainderStr;
     if (lastRemIy !== null) {
       // 余り行が描画済みの場合、内部マップから読み取る（fixAndReadRowNumber で補正済み値を使用）
-      const remStr = this.fixAndReadRowNumber(lastRemIy);
-      finalRemainder = remStr === '' ? 0 : parseFloat(remStr);
+      finalRemainderStr = this.fixAndReadRowNumber(lastRemIy);
     } else if (bFracLen > 0) {
-      // 余り行がない場合（例：商が0で除算ステップがなかった場合）は数値計算で求める
-      finalRemainder = parseFloat((Number(currentVal) / (10 ** bFracLen)).toPrecision(15));
+      // 余り行がない場合（例：商が0で除算ステップがなかった場合）はBigInt演算で求める（浮動小数点誤差を避ける）
+      const power = BigInt(10) ** BigInt(bFracLen);
+      const whole = currentVal / power;
+      const frac = currentVal % power;
+      if (frac === 0n) {
+        finalRemainderStr = whole.toString();
+      } else {
+        const fracStr = frac.toString().padStart(bFracLen, '0').replace(/0+$/, '');
+        finalRemainderStr = `${whole}.${fracStr}`;
+      }
     } else {
-      finalRemainder = Number(currentVal);
+      finalRemainderStr = currentVal.toString();
     }
 
     let answer;
-    if (finalRemainder === 0) {
+    if (finalRemainderStr === '' || finalRemainderStr === '0') {
       answer = quotient;
       this.addCommand(['output', `答えは ${quotient} です。あまりはありません。`]);
     } else {
-      answer = `${quotient} … ${finalRemainder}`;
-      this.addCommand(['output', `商は ${quotient} 、あまりは ${finalRemainder} です。`]);
+      answer = `${quotient} … ${finalRemainderStr}`;
+      this.addCommand(['output', `商は ${quotient} 、あまりは ${finalRemainderStr} です。`]);
     }
     this.answer = answer;
     {
