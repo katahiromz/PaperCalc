@@ -210,7 +210,7 @@ class AlgoDiv extends AlgoBase {
       this.addCommand(['step']);
     }
 
-    const quotient = this.fixAndReadRowNumber(origin_iy);
+    const quotient = this.fixAndReadRowNumber(origin_iy, false, true);
 
     let finalRemainder = currentVal / (10 ** bFracLen);
     finalRemainder = parseFloat(finalRemainder.toPrecision(15));

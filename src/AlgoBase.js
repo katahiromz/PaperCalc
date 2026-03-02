@@ -705,7 +705,7 @@ class AlgoBase {
   }
 
   // 行の数を補正して読み取る
-  fixAndReadRowNumber(iy, ignoreDot = false) {
+  fixAndReadRowNumber(iy, ignoreDot = false, dontFixTrailZeros = false) {
     // 小数点の左側に数字がないとき、ゼロを追加
     if (this.addMissingZero(iy, true)) {
       this.addCommand(['output', `小数点の左側に数字がないのでゼロを追加します。`]);
@@ -718,7 +718,7 @@ class AlgoBase {
       this.fixLeadZeros(iy, false);
       this.addCommand(['step']);
     }
-    if (this.fixTrailingZeros(iy, true)) {
+    if (!dontFixTrailZeros && this.fixTrailingZeros(iy, true)) {
       this.addCommand(['output', `小数部の右側の余分なゼロを消します。`]);
       this.fixTrailingZeros(iy, false);
       this.addCommand(['step']);
