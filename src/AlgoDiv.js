@@ -103,7 +103,7 @@ class AlgoDiv extends AlgoBase {
     }
 
     const extraDigits = parseInt(c) || 0; // 仕様A: 小数点以下ちょうど c 桁
-    const totalDigits = aDigits.length + extraDigits;
+    const totalDigits = Math.min(aDotIdx, aDigits.length) + extraDigits;
 
     this.addCommand(['output', `図のように線を描いてください。`]);
     this.addCommand(['drawDivCurve', aStartIx - 1, origin_iy + 1]);
@@ -246,7 +246,7 @@ class AlgoDiv extends AlgoBase {
     const filled = quotientDigits.map(d => (d === null ? '0' : d));
 
     let quotientStr = '';
-    if (dotPos === null) {
+    if (dotPos === null || dotPos >= totalDigits) {
       quotientStr = filled.slice(first).join('');
       quotientStr = quotientStr.replace(/^0+(?=\d)/, '') || '0';
     } else {
@@ -332,7 +332,7 @@ class AlgoDiv extends AlgoBase {
     console.assert(this.testEntryEx('999', '0.1', '9990', '0'));
     console.assert(this.testEntryEx('999', '0.1', '9990.00', '2'));
     console.assert(this.testEntryEx('99999999999999999999', '99999999999999999999', '1.0', '1'));
-    console.assert(this.testEntryEx('99.90', '990.0', '0 … 99.9', '0')); // FIXME
+    console.assert(this.testEntryEx('99.90', '990.0', '0 … 99.9', '0'));
 
     // 【ちびむすより引用】ここから
     console.assert(this.testEntryEx('63', '2', '31 … 1'));
