@@ -24,7 +24,7 @@ class AlgoDiv extends AlgoBase {
 
     // workB: bの小数点を除去して整数文字列化（誤差なし）
     const workB = bFracLen > 0 ? b.replace('.', '').replace(/^0+/, '') || '0' : b;
-    const bVal = parseInt(workB);
+    const bVal = BigInt(workB);
 
     // workA: aの小数点をbFracLen桁右にずらした文字列（aDigits・aDotIdx算出用）
     let workA = a;
@@ -111,7 +111,7 @@ class AlgoDiv extends AlgoBase {
     this.addCommand(['step']);
 
     // 4. 割り算のメインループ
-    let currentVal = 0;
+    let currentVal = 0n;
     let iy = origin_iy + 1;
     let isFirstDigit = true;
 
@@ -149,7 +149,7 @@ class AlgoDiv extends AlgoBase {
       const digitChar = (i < aDigits.length) ? aDigits[i] : '0';
       const digit = parseInt(digitChar);
 
-      currentVal = currentVal * 10 + digit;
+      currentVal = currentVal * 10n + BigInt(digit);
 
       // 数字を下ろす処理
       if (i > 0 && iy != origin_iy + 1) {
@@ -171,7 +171,7 @@ class AlgoDiv extends AlgoBase {
       }
 
       if (currentVal >= bVal) {
-        const q = Math.floor(currentVal / bVal);
+        const q = Number(currentVal / bVal);
         const qChar = q.toString();
 
         // autoDigitMul は「1桁×多桁」なので q は 0..9 のはず
@@ -190,30 +190,30 @@ class AlgoDiv extends AlgoBase {
 
         // 引き算の線
         this.addCommand(['output', `下に引き算の線を描きます。`]);
-        const productLen = (q * bVal).toString().length;
+        const productLen = (BigInt(q) * bVal).toString().length;
         this.addCommand(['drawLine', ix - productLen + 1, iy + 1, aStartIx + Math.max(totalDigits, i + 1), iy + 1]);
         this.addCommand(['step']);
 
         // 引き算の結果（あまり）
         iy++;
-        const remainder = currentVal - (q * bVal);
+        const remainder = currentVal - BigInt(q) * bVal;
         const remStr = remainder.toString();
 
-        this.addCommand(['output', `${currentVal} から積 ${q * bVal} を引きます。`]);
+        this.addCommand(['output', `${currentVal} から積 ${BigInt(q) * bVal} を引きます。`]);
         for (let j = remStr.length - 1; j >= 0; --j) {
           const targetIx = ix - (remStr.length - 1 - j);
           this.addCommand(['drawDigit', targetIx, iy, remStr[j]]);
           this.setMapDigit(targetIx, iy, remStr[j]);
           this.addCommand(['step']);
         }
-        this.addCommand(['output', `${currentVal} 引く ${q * bVal} で ${remainder} あまりました。`]);
+        this.addCommand(['output', `${currentVal} 引く ${BigInt(q) * bVal} で ${remainder} あまりました。`]);
         this.addCommand(['step']);
 
         // --- 重要: remainder を次のループの currentVal に反映 ---
         currentVal = remainder;
 
         // currentVal が 0 になっても、被除数(aDigits)の残り桁がある間は打ち切らない
-        if (currentVal === 0 && extraDigits > 0 && i >= aDigits.length) {
+        if (currentVal === 0n && extraDigits > 0 && i >= aDigits.length) {
           break;
         }
       } else {
@@ -265,8 +265,12 @@ class AlgoDiv extends AlgoBase {
     const quotient = quotientStr;
 
     // あまり（表示用に元スケールへ戻す）
-    let finalRemainder = currentVal / (10 ** bFracLen);
-    finalRemainder = parseFloat(finalRemainder.toPrecision(15));
+    let finalRemainder;
+    if (bFracLen === 0) {
+      finalRemainder = Number(currentVal);
+    } else {
+      finalRemainder = parseFloat((Number(currentVal) / (10 ** bFracLen)).toPrecision(15));
+    }
 
     let answer;
     if (finalRemainder === 0) {
@@ -327,7 +331,7 @@ class AlgoDiv extends AlgoBase {
     console.assert(this.testEntryEx('0.1', '2', '0.0500', '4'));
     console.assert(this.testEntryEx('999', '0.1', '9990', '0'));
     console.assert(this.testEntryEx('999', '0.1', '9990.00', '2'));
-    console.assert(this.testEntryEx('99999999999999999999', '99999999999999999999', '1.0', '1')); // FIXME
+    console.assert(this.testEntryEx('99999999999999999999', '99999999999999999999', '1.0', '1'));
 
     // 【ちびむすより引用】ここから
     console.assert(this.testEntryEx('63', '2', '31 … 1'));
