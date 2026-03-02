@@ -6,7 +6,7 @@
     "outDir": "dist",
     "allowJs": true,
     "checkJs": false,
-    "sourceMap": true,
+    "sourceMap": false,
     "strict": true
   },
   "include": ["src/**/*.ts", "src/**/*.js"]
