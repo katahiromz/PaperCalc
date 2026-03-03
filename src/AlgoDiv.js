@@ -63,6 +63,14 @@ class AlgoDiv extends AlgoBase {
     }
     this.addCommand(['step']);
 
+    const extraDigits = parseInt(c) || 0; // 仕様A: 小数点以下ちょうど c 桁
+    const totalDigits = Math.min(aDotIdx, aDigits.length) + extraDigits;
+
+    this.addCommand(['output', `図のように線を描いてください。`]);
+    this.addCommand(['drawDivCurve', aStartIx - 1, origin_iy + 1]);
+    this.addCommand(['drawLine', aStartIx - 0.7, origin_iy + 1, aStartIx + aDigits.length + extraDigits, origin_iy + 1]);
+    this.addCommand(['step']);
+
     // 3. 小数点がある場合、slashDotで消す演出をする
     if (bFracLen > 0) {
       this.addCommand(['output', `割る数 ${b} を整数にするため、小数点を ${bFracLen} 桁右に動かします。`]);
@@ -101,14 +109,6 @@ class AlgoDiv extends AlgoBase {
       }
       this.addCommand(['step']);
     }
-
-    const extraDigits = parseInt(c) || 0; // 仕様A: 小数点以下ちょうど c 桁
-    const totalDigits = Math.min(aDotIdx, aDigits.length) + extraDigits;
-
-    this.addCommand(['output', `図のように線を描いてください。`]);
-    this.addCommand(['drawDivCurve', aStartIx - 1, origin_iy + 1]);
-    this.addCommand(['drawLine', aStartIx - 0.7, origin_iy + 1, aStartIx + aDigits.length + extraDigits, origin_iy + 1]);
-    this.addCommand(['step']);
 
     // 4. 割り算のメインループ
     let currentVal = 0n;
