@@ -58,6 +58,7 @@ button:disabled {
   align-items: center;
   overflow-x: auto; /* 横長になってもスクロール可能に */
   background-color: #f9f9f9;
+  touch-action: none; /* ピンチ操作をブラウザに奪われないようにする */
 }
 #my-textarea {
   border-radius: 5px;

@@ -189,6 +189,7 @@ document.addEventListener('DOMContentLoaded', function(){
   const onCanvasPointerDown = (e) => {
     // タッチポインターはピンチズーム用に追跡
     if (e.pointerType === 'touch') {
+      e.preventDefault();
       touchPointers.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
       return;
     }
