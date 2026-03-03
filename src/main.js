@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', function(){
   Paper.g_minimal = true; // 紙の拡張を最小限にする
 
   let canvas = document.getElementById('my-canvas');
+  let canvas_space = document.getElementById('my-canvas-space');;
   let start_button = document.getElementById('my-start-button');
   let stop_button = document.getElementById('my-stop-button');
   let reset_button = document.getElementById('my-reset-button');
@@ -48,12 +49,36 @@ document.addEventListener('DOMContentLoaded', function(){
     step: 1.2,
   };
 
+  // 中ボタンドラッグでキャンバスをパン(移動)
+  // transform を (translate + scale) に統一して、ズームとパンを共存させる
+  const panState = {
+    x: 0,
+    y: 0,
+    dragging: false,
+    startClientX: 0,
+    startClientY: 0,
+    startX: 0,
+    startY: 0,
+    pointerId: null,
+  };
+
   const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
-  const applyCanvasZoom = (originX, originY) => {
+  const applyCanvasTransform = (originX, originY) => {
     // transform-origin は要素の左上からの座標(px)
     canvas.style.transformOrigin = `${originX}px ${originY}px`;
-    canvas.style.transform = `scale(${zoomState.scale})`;
+    canvas.style.transform = `translate(${panState.x}px, ${panState.y}px) scale(${zoomState.scale})`;
+  };
+
+  const applyCanvasZoom = (originX, originY) => {
+    applyCanvasTransform(originX, originY);
+  };
+
+  const applyCanvasPan = () => {
+    const origin = (canvas.style.transformOrigin || '0 0').split(' ');
+    const ox = parseFloat(origin[0]) || 0;
+    const oy = parseFloat(origin[1]) || 0;
+    applyCanvasTransform(ox, oy);
   };
 
   const getWheelScaleFactor = (deltaY) => {
@@ -92,10 +117,67 @@ document.addEventListener('DOMContentLoaded', function(){
     applyCanvasZoom(localX, localY);
   };
 
-  // zoom用の初期スタイル
-  canvas.style.transformOrigin = '0 0';
-  canvas.style.transform = 'scale(1)';
+  // 中ボタン(ホイール押し込み)ドラッグでパン
+  const onCanvasPointerDown = (e) => {
+    if (e.button !== 1) return;
+    e.preventDefault();
 
+    panState.dragging = true;
+    panState.startClientX = e.clientX;
+    panState.startClientY = e.clientY;
+    panState.startX = panState.x;
+    panState.startY = panState.y;
+
+    if (e.pointerId != null && canvas.setPointerCapture) {
+      panState.pointerId = e.pointerId;
+      canvas.setPointerCapture(e.pointerId);
+    }
+
+    canvas.style.cursor = 'grabbing';
+  };
+
+  const onCanvasPointerMove = (e) => {
+    if (!panState.dragging) return;
+    e.preventDefault();
+
+    const dx = e.clientX - panState.startClientX;
+    const dy = e.clientY - panState.startClientY;
+    panState.x = panState.startX + dx;
+    panState.y = panState.startY + dy;
+    applyCanvasPan();
+  };
+
+  const endPanDrag = (e) => {
+    if (!panState.dragging) return;
+    panState.dragging = false;
+
+    if (panState.pointerId != null && canvas.releasePointerCapture) {
+      try {
+        canvas.releasePointerCapture(panState.pointerId);
+      } catch (err) {
+        // ignore
+      }
+      panState.pointerId = null;
+    }
+
+    canvas.style.cursor = '';
+
+    if (e) e.preventDefault();
+  };
+
+  // zoom/pan 用の初期スタイル
+  canvas.style.transformOrigin = '0 0';
+  canvas.style.transform = 'translate(0px, 0px) scale(1)';
+
+  // ドラッグ中の右クリックメニュー抑止(環境によっては発生するため)
+  canvas.addEventListener('contextmenu', (e) => {
+    if (panState.dragging) e.preventDefault();
+  });
+
+  canvas_space.addEventListener('pointerdown', onCanvasPointerDown, { passive: false });
+  canvas_space.addEventListener('pointermove', onCanvasPointerMove, { passive: false });
+  canvas_space.addEventListener('pointerup', endPanDrag, { passive: false });
+  canvas_space.addEventListener('pointercancel', endPanDrag, { passive: false });
   window.addEventListener('wheel', onCanvasWheel, { passive: false });
 
   // 設定を読み込む
@@ -118,7 +200,7 @@ document.addEventListener('DOMContentLoaded', function(){
   };
   loadSettings();
 
-  // 全ての画像を読み込む
+  // 全ての画���を読み込む
   Promise.all(Object.keys(digitInfo).map(key => loadImage(key)))
     .then(() => {
       console.log('全ての画像の読み込みが完了しました');
@@ -186,7 +268,7 @@ document.addEventListener('DOMContentLoaded', function(){
       // 割り算の制約チェック
       if (select.value === 'div' && a !== "" && b !== "") {
         if (comparePositiveNumbers(b, '0') == 0) {
-          message = "ゼロで割ることはできませ���。";
+          message = "ゼロで割ることはできません。";
           isBValid = false;
         }
       }
@@ -344,7 +426,9 @@ document.addEventListener('DOMContentLoaded', function(){
     textarea.innerHTML = '';
 
     zoomState.scale = 1.0;
-    applyCanvasZoom(0, 0);
+    panState.x = 0;
+    panState.y = 0;
+    applyCanvasTransform(0, 0);
   });
 
   text_a.addEventListener('input', () => {
