@@ -163,7 +163,13 @@ document.addEventListener('DOMContentLoaded', function(){
       return;
 
     // translate 座標系でのズーム中心（flex センタリング・スクロールを自動考慮）
-    const sp = getZoomPivot(e.clientX, e.clientY);
+    // キャンバス外からのズームはキャンバス中央をピボットにする（自然な挙動）
+    const canvasRect = canvas.getBoundingClientRect();
+    const pivotClientX = (e.clientX >= canvasRect.left && e.clientX <= canvasRect.right)
+      ? e.clientX : Math.round((canvasRect.left + canvasRect.right) / 2);
+    const pivotClientY = (e.clientY >= canvasRect.top && e.clientY <= canvasRect.bottom)
+      ? e.clientY : Math.round((canvasRect.top + canvasRect.bottom) / 2);
+    const sp = getZoomPivot(pivotClientX, pivotClientY);
 
     // 次のスケールを計算
     const factor = getWheelScaleFactor(e.deltaY);
@@ -212,9 +218,15 @@ document.addEventListener('DOMContentLoaded', function(){
   };
 
   const onCanvasPointerMove = (e) => {
-    // タッチポインター: 2本指ならピンチズーム
+    // タッチポインター: 2本指ならピンチズーム、1本指ならパン
     if (e.pointerType === 'touch') {
-      if (touchPointers.has(e.pointerId) && touchPointers.size === 2) {
+      if (touchPointers.has(e.pointerId) && touchPointers.size === 1) {
+        // 1本指パン: 前回位置との差分を panState に加算
+        const prev = touchPointers.get(e.pointerId);
+        panState.x += Math.round(e.clientX - prev.clientX);
+        panState.y += Math.round(e.clientY - prev.clientY);
+        applyCanvasTransform();
+      } else if (touchPointers.has(e.pointerId) && touchPointers.size === 2) {
         const ids = Array.from(touchPointers.keys());
         const otherId = ids.find(id => id !== e.pointerId);
         const prev = touchPointers.get(e.pointerId);
