@@ -62,6 +62,7 @@ document.addEventListener('DOMContentLoaded', function(){
     pointerId: null,
   };
 
+  // 値を閉区間[min, max]の範囲内に制限する
   const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
   // ビューポート VW×VH に対してキャンバス表示サイズが収まるよう
