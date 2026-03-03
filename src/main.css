@@ -43,6 +43,10 @@ button:disabled {
   max-height: 60vh;
   max-height: 60dvh;
   overflow-y: auto; /* スクロール可能に */
+  /* Android Chrome ではポインターイベントの受け取り要素自体に touch-action: none が必要。
+     これがないとピンチズーム中にブラウザがジェスチャーを横取りし、少し動いただけで止まる。 */
+  touch-action: none;
+  -ms-touch-action: none;
 }
 #my-control-panel {
   background-color: #9cc;

@@ -163,7 +163,13 @@ document.addEventListener('DOMContentLoaded', function(){
       return;
 
     // translate 座標系でのズーム中心（flex センタリング・スクロールを自動考慮）
-    const sp = getZoomPivot(e.clientX, e.clientY);
+    // キャンバス外からのズームはキャンバス中央をピボットにする（自然な挙動）
+    const canvasRect = canvas.getBoundingClientRect();
+    const pivotClientX = (e.clientX >= canvasRect.left && e.clientX <= canvasRect.right)
+      ? e.clientX : Math.round((canvasRect.left + canvasRect.right) / 2);
+    const pivotClientY = (e.clientY >= canvasRect.top && e.clientY <= canvasRect.bottom)
+      ? e.clientY : Math.round((canvasRect.top + canvasRect.bottom) / 2);
+    const sp = getZoomPivot(pivotClientX, pivotClientY);
 
     // 次のスケールを計算
     const factor = getWheelScaleFactor(e.deltaY);
