@@ -38,6 +38,66 @@ document.addEventListener('DOMContentLoaded', function(){
     7: { text: '超速い', delay: 100 },
   };
 
+  // Ctrl + マウスホイール回転でキャンバスをズーム
+  // - Ctrl+Wheel はブラウザのページズームに奪われがちなので、passive:false で preventDefault する
+  // - CSS transform で拡大縮小し、マウスポインタ位置を transform-origin にして直感的にズームする
+  const zoomState = {
+    scale: 1.0,
+    minScale: 0.25,
+    maxScale: 6.0,
+    step: 1.2,
+  };
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+
+  const applyCanvasZoom = (originX, originY) => {
+    // transform-origin は要素の左上からの座標(px)
+    canvas.style.transformOrigin = `${originX}px ${originY}px`;
+    canvas.style.transform = `scale(${zoomState.scale})`;
+  };
+
+  const getWheelScaleFactor = (deltaY) => {
+    // deltaY: 下方向が正(通常)。下に回す=縮小, 上に回す=拡大
+    if (deltaY < 0) return zoomState.step;
+    if (deltaY > 0) return 1 / zoomState.step;
+    return 1;
+  };
+
+  // マウスホイール回転時の処理
+  const onCanvasWheel = (e) => {
+    // Ctrl が押されていない通常スクロールは従来通り(何もしない)
+    if (!e.ctrlKey) return;
+
+    // ブラウザ(ページ)ズームを抑止
+    e.preventDefault();
+
+    if (canvas.width <= 1 && canvas.height <= 1)
+      return;
+
+    const rect = canvas.getBoundingClientRect();
+    const localX = e.clientX - rect.left;
+    const localY = e.clientY - rect.top;
+
+    // 次のスケールを計算
+    const factor = getWheelScaleFactor(e.deltaY);
+    const nextScale = clamp(zoomState.scale * factor, zoomState.minScale, zoomState.maxScale);
+
+    // スケールが変わらない場合は何もしない
+    if (nextScale === zoomState.scale) {
+      applyCanvasZoom(localX, localY);
+      return;
+    }
+
+    zoomState.scale = nextScale;
+    applyCanvasZoom(localX, localY);
+  };
+
+  // zoom用の初期スタイル
+  canvas.style.transformOrigin = '0 0';
+  canvas.style.transform = 'scale(1)';
+
+  window.addEventListener('wheel', onCanvasWheel, { passive: false });
+
   // 設定を読み込む
   const loadSettings = () => {
     let PenCalc_textA = localStorage.getItem('PenCalc_textA');
@@ -126,7 +186,7 @@ document.addEventListener('DOMContentLoaded', function(){
       // 割り算の制約チェック
       if (select.value === 'div' && a !== "" && b !== "") {
         if (comparePositiveNumbers(b, '0') == 0) {
-          message = "ゼロで割ることはできません。";
+          message = "ゼロで割ることはできませ���。";
           isBValid = false;
         }
       }
@@ -282,6 +342,9 @@ document.addEventListener('DOMContentLoaded', function(){
     text_c.disabled = false;
     reset_button.disabled = false;
     textarea.innerHTML = '';
+
+    zoomState.scale = 1.0;
+    applyCanvasZoom(0, 0);
   });
 
   text_a.addEventListener('input', () => {
