@@ -123,6 +123,7 @@ class AlgoAdd extends AlgoBase {
     console.assert(this.testEntryEx('99.1', '9999.9', '10099'));
     console.assert(this.testEntryEx('0.0001', '9999.9999', '10000'));
     console.assert(this.testEntryEx('0.1', '0.2', '0.3')); // JavaScriptの誤差注意
+
     // 【ちびむすより引用】ここから
     console.assert(this.testEntryEx('56', '21', '77'));
     console.assert(this.testEntryEx('32', '48', '80'));
@@ -145,6 +146,7 @@ class AlgoAdd extends AlgoBase {
     console.assert(this.testEntryEx('64', '17', '81'));
     console.assert(this.testEntryEx('37', '30', '67'));
     // 【ちびむすより引用】ここまで
+
     this.reset();
   }
 }

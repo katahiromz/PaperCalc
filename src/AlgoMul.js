@@ -137,6 +137,7 @@ class AlgoMul extends AlgoBase {
     console.assert(this.testEntryEx('11.1', '1.11', '12.321'));
     console.assert(this.testEntryEx('0.2', '0.2', '0.04'));
     console.assert(this.testEntryEx('80.7', '100', '8070'));
+
     // 【ちびむすより引用】ここから
     console.assert(this.testEntryEx('35', '4', '140'));
     console.assert(this.testEntryEx('54', '3', '162'));
@@ -159,6 +160,7 @@ class AlgoMul extends AlgoBase {
     console.assert(this.testEntryEx('34', '6', '204'));
     console.assert(this.testEntryEx('78', '8', '624'));
     // 【ちびむすより引用】ここまで
+
     // 【ちびむすより引用】ここから
     console.assert(this.testEntryEx('23', '26', '598'));
     console.assert(this.testEntryEx('16', '42', '672'));
@@ -181,6 +183,7 @@ class AlgoMul extends AlgoBase {
     console.assert(this.testEntryEx('75', '26', '1950'));
     console.assert(this.testEntryEx('28', '16', '448'));
     // 【ちびむすより引用】ここまで
+
     this.reset();
   }
 }

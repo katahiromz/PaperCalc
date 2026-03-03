@@ -115,6 +115,7 @@ class AlgoSub extends AlgoBase {
     console.assert(this.testEntryEx('10000', '0.0001', '9999.9999'));
     console.assert(this.testEntryEx('0.1', '0.0001', '0.0999'));
     console.assert(this.testEntryEx('111', '99.1', '11.9'));
+
     // 【ちびむすより引用】ここから
     console.assert(this.testEntryEx('56', '21', '35'));
     console.assert(this.testEntryEx('48', '32', '16'));
@@ -137,6 +138,7 @@ class AlgoSub extends AlgoBase {
     console.assert(this.testEntryEx('64', '17', '47'));
     console.assert(this.testEntryEx('37', '25', '12'));
     // 【ちびむすより引用】ここまで
+
     // 【ちびむすより引用】ここから
     console.assert(this.testEntryEx('116', '52', '64'));
     console.assert(this.testEntryEx('163', '71', '92'));
@@ -159,6 +161,7 @@ class AlgoSub extends AlgoBase {
     console.assert(this.testEntryEx('156', '65', '91'));
     console.assert(this.testEntryEx('139', '54', '85'));
     // 【ちびむすより引用】ここまで
+
     this.reset();
   }
 }
