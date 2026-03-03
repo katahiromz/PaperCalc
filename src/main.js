@@ -314,7 +314,7 @@ document.addEventListener('DOMContentLoaded', function(){
   };
   loadSettings();
 
-  // 全ての画���を読み込む
+  // 全ての画像を読み込む
   Promise.all(Object.keys(digitInfo).map(key => loadImage(key)))
     .then(() => {
       console.log('全ての画像の読み込みが完了しました');
