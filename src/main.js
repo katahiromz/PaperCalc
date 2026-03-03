@@ -70,6 +70,12 @@ document.addEventListener('DOMContentLoaded', function(){
     canvas.style.transform = `translate(${panState.x}px, ${panState.y}px) scale(${zoomState.scale})`;
   };
 
+  const resetZoomAndPan = () => {
+    panState.x = panState.y = 0;
+    zoomState.scale = 1.0;
+    applyCanvasTransform();
+  };
+
   const applyCanvasPan = () => {
     applyCanvasTransform();
   };
@@ -346,6 +352,8 @@ document.addEventListener('DOMContentLoaded', function(){
 
   // 再生ボタン
   start_button.addEventListener('click', (e) => {
+    resetZoomAndPan();
+
     let a = text_a.value;
     let b = text_b.value;
     let c = text_c.value;
@@ -423,6 +431,8 @@ document.addEventListener('DOMContentLoaded', function(){
 
   // 「1歩進む」ボタン
   next_step_button.addEventListener('click', (e) => {
+    resetZoomAndPan();
+
     // アルゴリズムがまだ作成されていない、または停止している場合は初期化
     if (!algorithm || !algorithm.running) {
       let a = text_a.value;
