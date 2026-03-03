@@ -127,3 +127,14 @@ button:disabled {
 .center {
   text-align: center;
 }
+
+/* タッチデバイス（スマホ・タブレット）向けのタップターゲットを大きくする */
+@media (pointer: coarse) {
+  select, input[type=text], input[type=number], button {
+    padding: 8px;
+    min-height: 44px;
+  }
+  input[type=range] {
+    min-height: 44px;
+  }
+}
