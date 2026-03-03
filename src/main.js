@@ -4,7 +4,7 @@
 
 "use strict";
 
-const VERSION = '0.0.0'; // バージョン
+const VERSION = '0.0.1'; // バージョン
 const DEBUGGING = true; // デバッグ中か？
 
 document.addEventListener('DOMContentLoaded', function(){
