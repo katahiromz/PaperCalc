@@ -64,21 +64,29 @@ document.addEventListener('DOMContentLoaded', function(){
 
   const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
-  const applyCanvasTransform = (originX, originY) => {
-    // transform-origin は要素の左上からの座標(px)
-    canvas.style.transformOrigin = `${originX}px ${originY}px`;
+  // transform-origin は常に 0 0 に固定し、translate+scale で変換を統一する
+  const applyCanvasTransform = () => {
+    canvas.style.transformOrigin = '0 0';
     canvas.style.transform = `translate(${panState.x}px, ${panState.y}px) scale(${zoomState.scale})`;
   };
 
-  const applyCanvasZoom = (originX, originY) => {
-    applyCanvasTransform(originX, originY);
+  const applyCanvasPan = () => {
+    applyCanvasTransform();
   };
 
-  const applyCanvasPan = () => {
-    const origin = (canvas.style.transformOrigin || '0 0').split(' ');
-    const ox = parseFloat(origin[0]) || 0;
-    const oy = parseFloat(origin[1]) || 0;
-    applyCanvasTransform(ox, oy);
+  // canvas_space の座標系（scrollLeft/scrollTop を考慮）でのポイントを返す
+  const getSpacePoint = (clientX, clientY) => {
+    const rect = canvas_space.getBoundingClientRect();
+    return {
+      x: clientX - rect.left + canvas_space.scrollLeft,
+      y: clientY - rect.top + canvas_space.scrollTop,
+    };
+  };
+
+  // ズーム中心 (spaceX, spaceY) を固定したまま panState を補正する
+  const adjustPanForZoomAtSpacePoint = (spaceX, spaceY, prevScale, nextScale) => {
+    panState.x = spaceX + (panState.x - spaceX) * nextScale / prevScale;
+    panState.y = spaceY + (panState.y - spaceY) * nextScale / prevScale;
   };
 
   const getWheelScaleFactor = (deltaY) => {
@@ -99,26 +107,37 @@ document.addEventListener('DOMContentLoaded', function(){
     if (canvas.width <= 1 && canvas.height <= 1)
       return;
 
-    const rect = canvas.getBoundingClientRect();
-    const localX = e.clientX - rect.left;
-    const localY = e.clientY - rect.top;
+    // canvas_space 座標系でのズーム中心（scrollLeft/scrollTop を考慮）
+    const sp = getSpacePoint(e.clientX, e.clientY);
 
     // 次のスケールを計算
     const factor = getWheelScaleFactor(e.deltaY);
-    const nextScale = clamp(zoomState.scale * factor, zoomState.minScale, zoomState.maxScale);
+    const prevScale = zoomState.scale;
+    const nextScale = clamp(prevScale * factor, zoomState.minScale, zoomState.maxScale);
 
     // スケールが変わらない場合は何もしない
-    if (nextScale === zoomState.scale) {
-      applyCanvasZoom(localX, localY);
+    if (nextScale === prevScale) {
+      applyCanvasTransform();
       return;
     }
 
+    // ズーム中心を固定するよう panState を補正してからスケールを更新
+    adjustPanForZoomAtSpacePoint(sp.x, sp.y, prevScale, nextScale);
     zoomState.scale = nextScale;
-    applyCanvasZoom(localX, localY);
+    applyCanvasTransform();
   };
+
+  // タッチ（ピンチ）ズーム用のポインター追跡
+  const touchPointers = new Map();
 
   // 中ボタン(ホイール押し込み)ドラッグでパン
   const onCanvasPointerDown = (e) => {
+    // タッチポインターはピンチズーム用に追跡
+    if (e.pointerType === 'touch') {
+      touchPointers.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
+      return;
+    }
+
     if (e.button !== 1) return;
     e.preventDefault();
 
@@ -137,6 +156,37 @@ document.addEventListener('DOMContentLoaded', function(){
   };
 
   const onCanvasPointerMove = (e) => {
+    // タッチポインター: 2本指ならピンチズーム
+    if (e.pointerType === 'touch') {
+      if (touchPointers.has(e.pointerId) && touchPointers.size === 2) {
+        const ids = Array.from(touchPointers.keys());
+        const otherId = ids.find(id => id !== e.pointerId);
+        const prev = touchPointers.get(e.pointerId);
+        const other = touchPointers.get(otherId);
+
+        const prevDist = Math.hypot(prev.clientX - other.clientX, prev.clientY - other.clientY);
+        const newDist = Math.hypot(e.clientX - other.clientX, e.clientY - other.clientY);
+
+        if (prevDist > 0) {
+          const factor = newDist / prevDist;
+          const prevScale = zoomState.scale;
+          const nextScale = clamp(prevScale * factor, zoomState.minScale, zoomState.maxScale);
+
+          // ピンチ中心を canvas_space 座標系で取得（scrollLeft/scrollTop 考慮）
+          const centerClientX = (e.clientX + other.clientX) / 2;
+          const centerClientY = (e.clientY + other.clientY) / 2;
+          const sp = getSpacePoint(centerClientX, centerClientY);
+
+          adjustPanForZoomAtSpacePoint(sp.x, sp.y, prevScale, nextScale);
+          zoomState.scale = nextScale;
+          applyCanvasTransform();
+        }
+      }
+      touchPointers.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
+      e.preventDefault();
+      return;
+    }
+
     if (!panState.dragging) return;
     e.preventDefault();
 
@@ -148,6 +198,12 @@ document.addEventListener('DOMContentLoaded', function(){
   };
 
   const endPanDrag = (e) => {
+    // タッチポインターの追跡を終了
+    if (e && e.pointerType === 'touch') {
+      touchPointers.delete(e.pointerId);
+      return;
+    }
+
     if (!panState.dragging) return;
     panState.dragging = false;
 
@@ -428,7 +484,7 @@ document.addEventListener('DOMContentLoaded', function(){
     zoomState.scale = 1.0;
     panState.x = 0;
     panState.y = 0;
-    applyCanvasTransform(0, 0);
+    applyCanvasTransform();
   });
 
   text_a.addEventListener('input', () => {
