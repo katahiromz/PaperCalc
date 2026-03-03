@@ -120,13 +120,10 @@ document.addEventListener('DOMContentLoaded', function(){
     canvas.style.transform = `translate(${panState.x}px, ${panState.y}px) scale(${zoomState.scale})`;
   };
 
+  // ズームとパンニングをリセット
   const resetZoomAndPan = () => {
     panState.x = panState.y = 0;
     zoomState.scale = 1.0;
-    applyCanvasTransform();
-  };
-
-  const applyCanvasPan = () => {
     applyCanvasTransform();
   };
 
@@ -251,7 +248,7 @@ document.addEventListener('DOMContentLoaded', function(){
     const dy = e.clientY - panState.startClientY;
     panState.x = panState.startX + dx;
     panState.y = panState.startY + dy;
-    applyCanvasPan();
+    applyCanvasTransform();
   };
 
   const endPanDrag = (e) => {
