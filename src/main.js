@@ -2,13 +2,12 @@
 // Author: katahiromz
 // License: MIT
 "use strict";
-const VERSION = '0.0.2'; // バージョン
+const VERSION = '0.0.3'; // バージョン
 const DEBUGGING = true; // デバッグ中か？
 document.addEventListener('DOMContentLoaded', function () {
     Paper.g_minimal = true; // 紙の拡張を最小限にする
     let canvas = document.getElementById('my-canvas');
     let canvas_space = document.getElementById('my-canvas-space');
-    ;
     let start_button = document.getElementById('my-start-button');
     let stop_button = document.getElementById('my-stop-button');
     let reset_button = document.getElementById('my-reset-button');
