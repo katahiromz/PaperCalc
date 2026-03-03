@@ -74,19 +74,20 @@ document.addEventListener('DOMContentLoaded', function(){
     applyCanvasTransform();
   };
 
-  // canvas_space の座標系（scrollLeft/scrollTop を考慮）でのポイントを返す
-  const getSpacePoint = (clientX, clientY) => {
-    const rect = canvas_space.getBoundingClientRect();
+  // ズーム補正式のピボット点（translate 座標系、整数）を返す
+  // canvas.getBoundingClientRect() を使うことで flex センタリング・スクロール・transform を自動的に考慮する
+  const getZoomPivot = (clientX, clientY) => {
+    const canvasRect = canvas.getBoundingClientRect();
     return {
-      x: clientX - rect.left + canvas_space.scrollLeft,
-      y: clientY - rect.top + canvas_space.scrollTop,
+      x: Math.round(clientX) - Math.round(canvasRect.left) + panState.x,
+      y: Math.round(clientY) - Math.round(canvasRect.top) + panState.y,
     };
   };
 
-  // ズーム中心 (spaceX, spaceY) を固定したまま panState を補正する
-  const adjustPanForZoomAtSpacePoint = (spaceX, spaceY, prevScale, nextScale) => {
-    panState.x = spaceX + (panState.x - spaceX) * nextScale / prevScale;
-    panState.y = spaceY + (panState.y - spaceY) * nextScale / prevScale;
+  // ズーム中心 (pivotX, pivotY) を固定したまま panState を補正する
+  const adjustPanForZoomAtSpacePoint = (pivotX, pivotY, prevScale, nextScale) => {
+    panState.x = Math.round(pivotX + (panState.x - pivotX) * nextScale / prevScale);
+    panState.y = Math.round(pivotY + (panState.y - pivotY) * nextScale / prevScale);
   };
 
   const getWheelScaleFactor = (deltaY) => {
@@ -107,8 +108,8 @@ document.addEventListener('DOMContentLoaded', function(){
     if (canvas.width <= 1 && canvas.height <= 1)
       return;
 
-    // canvas_space 座標系でのズーム中心（scrollLeft/scrollTop を考慮）
-    const sp = getSpacePoint(e.clientX, e.clientY);
+    // translate 座標系でのズーム中心（flex センタリング・スクロールを自動考慮）
+    const sp = getZoomPivot(e.clientX, e.clientY);
 
     // 次のスケールを計算
     const factor = getWheelScaleFactor(e.deltaY);
@@ -175,7 +176,7 @@ document.addEventListener('DOMContentLoaded', function(){
           // ピンチ中心を canvas_space 座標系で取得（scrollLeft/scrollTop 考慮）
           const centerClientX = (e.clientX + other.clientX) / 2;
           const centerClientY = (e.clientY + other.clientY) / 2;
-          const sp = getSpacePoint(centerClientX, centerClientY);
+          const sp = getZoomPivot(centerClientX, centerClientY);
 
           adjustPanForZoomAtSpacePoint(sp.x, sp.y, prevScale, nextScale);
           zoomState.scale = nextScale;
