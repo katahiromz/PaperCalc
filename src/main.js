@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function(){
     step: 1.2,
   };
 
-  // 中ボタンドラッグでキャンバスをパン(移動)
+  // 中ボタンドラッグ / スペース+左ドラッグ でキャンバスをパン(移動)
   // transform を (translate + scale) に統一して、ズームとパンを共存させる
   const panState = {
     x: 0,
@@ -61,6 +61,9 @@ document.addEventListener('DOMContentLoaded', function(){
     startY: 0,
     pointerId: null,
   };
+
+  // スペースキーの押下状態
+  let spaceKeyDown = false;
 
   const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
@@ -151,8 +154,15 @@ document.addEventListener('DOMContentLoaded', function(){
 
   // マウスホイール回転時の処理
   const onCanvasWheel = (e) => {
-    // Ctrl が押されていない通常スクロールは従来通り(何もしない)
-    if (!e.ctrlKey) return;
+    // Ctrl なしの通常スクロール → パン (トラックパッド 2 本指スクロール等)
+    if (!e.ctrlKey) {
+      e.preventDefault();
+      // Math.trunc で整数化し、浮動小数点誤差を完全に排除する
+      panState.x -= Math.trunc(e.deltaX);
+      panState.y -= Math.trunc(e.deltaY);
+      applyCanvasPan();
+      return;
+    }
 
     // ブラウザ(ページ)ズームを抑止
     e.preventDefault();
@@ -178,9 +188,11 @@ document.addEventListener('DOMContentLoaded', function(){
     applyCanvasZoom(localX, localY);
   };
 
-  // 中ボタン(ホイール押し込み)ドラッグでパン
+  // 中ボタン(ホイール押し込み)ドラッグ、またはスペース+左ドラッグでパン
   const onCanvasPointerDown = (e) => {
-    if (e.button !== 1) return;
+    const isMiddle = e.button === 1;
+    const isSpaceLeft = e.button === 0 && spaceKeyDown;
+    if (!isMiddle && !isSpaceLeft) return;
     e.preventDefault();
 
     panState.dragging = true;
@@ -189,12 +201,16 @@ document.addEventListener('DOMContentLoaded', function(){
     panState.startX = panState.x;
     panState.startY = panState.y;
 
-    if (e.pointerId != null && canvas.setPointerCapture) {
+    if (e.pointerId != null && canvas_space.setPointerCapture) {
       panState.pointerId = e.pointerId;
-      canvas.setPointerCapture(e.pointerId);
+      try {
+        canvas_space.setPointerCapture(e.pointerId);
+      } catch (err) {
+        // ignore
+      }
     }
 
-    canvas.style.cursor = 'grabbing';
+    canvas_space.style.cursor = 'grabbing';
   };
 
   const onCanvasPointerMove = (e) => {
@@ -212,16 +228,16 @@ document.addEventListener('DOMContentLoaded', function(){
     if (!panState.dragging) return;
     panState.dragging = false;
 
-    if (panState.pointerId != null && canvas.releasePointerCapture) {
+    if (panState.pointerId != null && canvas_space.releasePointerCapture) {
       try {
-        canvas.releasePointerCapture(panState.pointerId);
+        canvas_space.releasePointerCapture(panState.pointerId);
       } catch (err) {
         // ignore
       }
       panState.pointerId = null;
     }
 
-    canvas.style.cursor = '';
+    canvas_space.style.cursor = spaceKeyDown ? 'grab' : '';
 
     if (e) e.preventDefault();
   };
@@ -233,6 +249,38 @@ document.addEventListener('DOMContentLoaded', function(){
   // ドラッグ中の右クリックメニュー抑止(環境によっては発生するため)
   canvas.addEventListener('contextmenu', (e) => {
     if (panState.dragging) e.preventDefault();
+  });
+  canvas_space.addEventListener('contextmenu', (e) => {
+    if (panState.dragging) e.preventDefault();
+  });
+
+  // ドラッグ中のテキスト選択を抑止
+  canvas_space.addEventListener('selectstart', (e) => {
+    if (panState.dragging || spaceKeyDown) e.preventDefault();
+  });
+
+  // スペースキー押下中はカーソルを grab に変更し、ページスクロールを抑止
+  document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' && !e.repeat) {
+      const tag = document.activeElement.tagName.toUpperCase();
+      const isFormEl = ['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(tag) ||
+                       document.activeElement.isContentEditable;
+      if (!isFormEl) {
+        spaceKeyDown = true;
+        if (!panState.dragging) {
+          canvas_space.style.cursor = 'grab';
+        }
+        e.preventDefault();
+      }
+    }
+  });
+  document.addEventListener('keyup', (e) => {
+    if (e.code === 'Space') {
+      spaceKeyDown = false;
+      if (!panState.dragging) {
+        canvas_space.style.cursor = '';
+      }
+    }
   });
 
   canvas_space.addEventListener('pointerdown', onCanvasPointerDown, { passive: false });
