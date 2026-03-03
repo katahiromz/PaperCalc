@@ -64,8 +64,58 @@ document.addEventListener('DOMContentLoaded', function(){
 
   const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
+  // ビューポート VW×VH に対してキャンバス表示サイズが収まるよう
+  // panState.x/y をクランプ（または中央寄せ）する。
+  // 丸め規則: 浮動小数点の中間値はすべて Math.floor で整数に丸めて誤差を抑制する（切り捨て）。
+  // 最終的に panState.x/y は整数となる。
+  const clampPan = () => {
+    // ビューポートサイズ（整数 px）
+    const VW = canvas_space.clientWidth;
+    const VH = canvas_space.clientHeight;
+    if (VW <= 0 || VH <= 0) return;
+
+    // canvas の CSS レイアウトサイズ（transform 前、整数 px）
+    const CW_L = canvas.offsetWidth;
+    const CH_L = canvas.offsetHeight;
+    if (CW_L <= 0 || CH_L <= 0) return;
+
+    const s = zoomState.scale;
+
+    // 倍率適用後の表示サイズ（切り捨て: 保守的に小さく見積もる）
+    const CW2 = Math.floor(CW_L * s);
+    const CH2 = Math.floor(CH_L * s);
+
+    // flex センタリングにより canvas 左端/上端が置かれるオフセット（切り捨て）
+    // panState = (0, 0) のとき canvas 左端はビューポート内の flex_x 位置にある
+    const flex_x = Math.floor((VW - CW_L) / 2);
+    const flex_y = Math.floor((VH - CH_L) / 2);
+
+    // X 軸
+    if (CW2 >= VW) {
+      // キャンバスがビューポートより大きい → 端に空白が出ないようクランプ
+      // 上限: canvas 左端がビューポート左端に揃う（visual_left = 0）
+      const maxX = -flex_x;
+      // 下限: canvas 右端がビューポート右端に揃う（visual_right = VW）
+      const minX = VW - flex_x - CW2;
+      panState.x = Math.min(maxX, Math.max(minX, panState.x));
+    } else {
+      // キャンバスがビューポートより小さい → 中央寄せ固定（切り捨て）
+      panState.x = Math.floor((VW - CW2) / 2) - flex_x;
+    }
+
+    // Y 軸
+    if (CH2 >= VH) {
+      const maxY = -flex_y;
+      const minY = VH - flex_y - CH2;
+      panState.y = Math.min(maxY, Math.max(minY, panState.y));
+    } else {
+      panState.y = Math.floor((VH - CH2) / 2) - flex_y;
+    }
+  };
+
   // transform-origin は常に 0 0 に固定し、translate+scale で変換を統一する
   const applyCanvasTransform = () => {
+    clampPan();
     canvas.style.transformOrigin = '0 0';
     canvas.style.transform = `translate(${panState.x}px, ${panState.y}px) scale(${zoomState.scale})`;
   };
@@ -242,6 +292,9 @@ document.addEventListener('DOMContentLoaded', function(){
   canvas_space.addEventListener('pointerup', endPanDrag, { passive: false });
   canvas_space.addEventListener('pointercancel', endPanDrag, { passive: false });
   window.addEventListener('wheel', onCanvasWheel, { passive: false });
+
+  // ビューポートリサイズ時に中央寄せ/クランプを再計算する
+  new ResizeObserver(() => applyCanvasTransform()).observe(canvas_space);
 
   // 設定を読み込む
   const loadSettings = () => {
