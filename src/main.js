@@ -64,9 +64,72 @@ document.addEventListener('DOMContentLoaded', function(){
 
   const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
+  const getTransformOrigin = () => {
+    const origin = (canvas.style.transformOrigin || '0 0').split(' ');
+    const ox = parseFloat(origin[0]) || 0;
+    const oy = parseFloat(origin[1]) || 0;
+    return { ox, oy };
+  };
+
+  // 表示領域(canvas_space)からキャンバス内容がはみ出ないように panState を補正する
+  // ※小数点を極力避けるため、translate は整数(px)に丸める
+  const clampPanToViewport = () => {
+    const viewportW = canvas_space.clientWidth;
+    const viewportH = canvas_space.clientHeight;
+
+    // 念のため (まだ配置されていない等)
+    if (viewportW <= 0 || viewportH <= 0) return;
+
+    // transform-origin を考慮したバウンディングボックス(要素座標系)を計算
+    // CSS transform: translate(x,y) scale(s) with origin(ox,oy)
+    // left = x + ox - ox*s
+    // top  = y + oy - oy*s
+    // right  = left + canvas.width*s
+    // bottom = top  + canvas.height*s
+    const s = zoomState.scale;
+    const { ox, oy } = getTransformOrigin();
+
+    const scaledW = canvas.width * s;
+    const scaledH = canvas.height * s;
+
+    const left = panState.x + ox - ox * s;
+    const top = panState.y + oy - oy * s;
+    const right = left + scaledW;
+    const bottom = top + scaledH;
+
+    // X方向
+    if (scaledW <= viewportW) {
+      // 画面より小さい場合は中央寄せ(はみ出しなし)
+      const targetLeft = Math.floor((viewportW - scaledW) / 2);
+      const targetX = targetLeft - (ox - ox * s);
+      panState.x = Math.round(targetX);
+    } else {
+      // 画面より大きい場合は左右端が必ず内側に入るように制限
+      const minLeft = viewportW - scaledW; // left の最小値(右端を合わせる)
+      const maxLeft = 0;                  // left の最大値(左端を合わせる)
+      const clampedLeft = clamp(left, minLeft, maxLeft);
+      const targetX = clampedLeft - (ox - ox * s);
+      panState.x = Math.round(targetX);
+    }
+
+    // Y方向
+    if (scaledH <= viewportH) {
+      const targetTop = Math.floor((viewportH - scaledH) / 2);
+      const targetY = targetTop - (oy - oy * s);
+      panState.y = Math.round(targetY);
+    } else {
+      const minTop = viewportH - scaledH;
+      const maxTop = 0;
+      const clampedTop = clamp(top, minTop, maxTop);
+      const targetY = clampedTop - (oy - oy * s);
+      panState.y = Math.round(targetY);
+    }
+  };
+
   const applyCanvasTransform = (originX, originY) => {
     // transform-origin は要素の左上からの座標(px)
     canvas.style.transformOrigin = `${originX}px ${originY}px`;
+    clampPanToViewport();
     canvas.style.transform = `translate(${panState.x}px, ${panState.y}px) scale(${zoomState.scale})`;
   };
 
@@ -75,9 +138,7 @@ document.addEventListener('DOMContentLoaded', function(){
   };
 
   const applyCanvasPan = () => {
-    const origin = (canvas.style.transformOrigin || '0 0').split(' ');
-    const ox = parseFloat(origin[0]) || 0;
-    const oy = parseFloat(origin[1]) || 0;
+    const { ox, oy } = getTransformOrigin();
     applyCanvasTransform(ox, oy);
   };
 
@@ -179,6 +240,11 @@ document.addEventListener('DOMContentLoaded', function(){
   canvas_space.addEventListener('pointerup', endPanDrag, { passive: false });
   canvas_space.addEventListener('pointercancel', endPanDrag, { passive: false });
   window.addEventListener('wheel', onCanvasWheel, { passive: false });
+
+  // リサイズで viewport が変わった場合にもはみ出しを補正
+  window.addEventListener('resize', () => {
+    applyCanvasPan();
+  });
 
   // 設定を読み込む
   const loadSettings = () => {
