@@ -1,6 +1,6 @@
 {
   "name": "papercalc",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Written calculation in JavaScript",
   "scripts": {
     "build": "tsc && node scripts/copy-assets.js",
