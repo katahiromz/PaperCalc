@@ -6,6 +6,8 @@ PaperCalcは、JavaScriptで自動的に筆算を行うプログラムです。
 
 小学生３年生以上を対象としたWeb教材です。
 
+- デモ： https://katahiromz.github.io/paper-calc/
+
 ## Development Setup
 
 ### Requirements
