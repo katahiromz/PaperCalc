@@ -1,10 +1,10 @@
-# PaperCalc by katahiromz
+# 自動筆算プログラム PaperCalc
 
-## What's this?
+## これは何？
 
-Written calcuration in JavaScript.
+PaperCalcは、JavaScriptで自動的に筆算を行うプログラムです。
 
-(Under construction)
+小学生３年生以上の対象としたWeb教材です。
 
 ## Development Setup
 
