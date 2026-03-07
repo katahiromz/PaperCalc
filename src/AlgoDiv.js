@@ -255,7 +255,7 @@ class AlgoDiv extends AlgoBase {
             }
             remainderDotFixed = true;
         }
-        else if (lastRemIy === null && totalDigits < aDigits.length && bFracLen === 0) {
+        else if (lastRemIy === null && totalDigits < aDigits.length) {
             // 商がすべて 0 で割り算ステップが発生せず、かつ未処理の桁がある場合：
             // あまりとして被除数全体を新しい行に表示する
             iy++;
@@ -280,7 +280,9 @@ class AlgoDiv extends AlgoBase {
         // 条件: 除数が小数(bFracLen>0)かつ余りが非ゼロかつ余り行が描画済みで、
         //       extraDigits==0 の場合のみ（extraDigits>0 は後述の BigInt 計算で処理）
         if (bFracLen > 0 && extraDigits === 0 && currentVal > 0n && lastRemIy !== null && !remainderDotFixed) {
-            const dotIx = lastRemIx - bFracLen + 1;
+            // dotIx: 余り R の小数点位置は、右端(lastRemIx)から bFracLen 桁分左
+            // 例: bFracLen=2, R=5 → 小数部2桁('05')が右端から並ぶ → dotIx = lastRemIx - bFracLen
+            const dotIx = lastRemIx - bFracLen;
             this.addCommand(['drawDot', dotIx, lastRemIy]);
             this.setMapDot(dotIx, lastRemIy);
             this.addCommand(['step']);
@@ -301,15 +303,13 @@ class AlgoDiv extends AlgoBase {
         // 最後に商が立った余りからさらに (totalDigits - lastQuotientI - 1) 回 ×10 されている。
         // 余り行の描画内容は途中経過のものなので、BigInt から正確な余りを再計算して
         // 余り行を上書き描画し直す。
-        // スケール: currentVal = 実際の余り × 10^(aFracLen + totalDigits - aDigits.length)
-        // （workA = a×10^bFracLen を数字列化したもの。
-        //   aDigits = a×10^aFracLen の数字列。
-        //   totalDigits 桁まで処理 = aDigits に (totalDigits-aDigits.length) 個の '0' を追加。
-        //   bVal = b×10^bFracLen。
-        //   余り currentVal の実際スケール = 10^(aFracLen + totalDigits - aDigits.length - bFracLen + bFracLen)
-        //                                  = 10^(aFracLen + totalDigits - aDigits.length) ）
+        // スケール: currentVal = 実際の余り × 10^(bFracLen + extraDigits)
+        // workA = a×10^bFracLen, bVal = b×10^bFracLen で割り算を行い、
+        // さらに extraDigits 桁分の小数を処理したため、
+        // スケールは 10^(bFracLen + extraDigits) となる。
         if (bFracLen > 0 && extraDigits > 0 && currentVal > 0n && lastRemIy !== null && !remainderDotFixed) {
-            const remScale = aFracLen + (totalDigits - aDigits.length);
+            // 正しいスケール: currentVal = 実際の余り × 10^(bFracLen + extraDigits)
+            const remScale = bFracLen + extraDigits;
             // BigInt で正確な余りを文字列化
             let remPower = 1n;
             for (let i = 0; i < remScale; ++i) remPower *= 10n;
@@ -345,7 +345,8 @@ class AlgoDiv extends AlgoBase {
         let finalRemainderStr;
         if (bFracLen > 0 && extraDigits > 0 && currentVal > 0n) {
             // bFracLen>0 かつ extraDigits>0 の場合: BigInt から直接計算（スケール補正）
-            const remScale = aFracLen + (totalDigits - aDigits.length);
+            // 正しいスケール: currentVal = 実際の余り × 10^(bFracLen + extraDigits)
+            const remScale = bFracLen + extraDigits;
             let remPower = 1n;
             for (let i = 0; i < remScale; ++i) remPower *= 10n;
             const remWhole = currentVal / remPower;
@@ -445,6 +446,11 @@ class AlgoDiv extends AlgoBase {
         console.assert(this.testEntryEx('12.355', '7', '1.7 … 0.455', '1'));
         console.assert(this.testEntryEx('12345', '67', '184.25 … 0.25', '2'));
         console.assert(this.testEntryEx('7.955', '7.89', '1.00 … 0.065', '2'));
+        console.assert(this.testEntryEx('0.3', '0.25', '1 … 0.05'));
+        console.assert(this.testEntryEx('1.3', '0.25', '5 … 0.05'));
+        console.assert(this.testEntryEx('0.01', '0.1', '0 … 0.01'));
+        console.assert(this.testEntryEx('0.25', '0.3', '0 … 0.25')); // FIXME
+        console.assert(this.testEntryEx('1', '0.3', '3.3 … 0.01', '1')); // FIXME
         // 【ちびむすより引用】ここから
         console.assert(this.testEntryEx('63', '2', '31 … 1'));
         console.assert(this.testEntryEx('88', '4', '22'));
