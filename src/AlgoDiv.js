@@ -228,6 +228,7 @@ class AlgoDiv extends AlgoBase {
         // 余りを確定するため残りの桁を全部下ろしてから小数点を描画する
         // （currentVal が 0 でも、未処理桁がある場合は余りを構成するため条件から除外）
         let remainderDotFixed = false;
+        let elseIfExtraLen = 0; // else if ブランチで蓄積した追加桁数（remScale補正用）
         if (lastRemIy !== null && totalDigits < aDigits.length) {
             this.addCommand(['output', `ここで計算を打ち切ります。あまりをぜんぶ下ろします。`]);
             for (let j = totalDigits; j < aDigits.length; j++) {
@@ -273,6 +274,12 @@ class AlgoDiv extends AlgoBase {
                 this.setMapDot(dotIx, iy);
                 this.addCommand(['step']);
             }
+            // 余りを BigInt で正確に求めるため、未処理の桁を currentVal に蓄積し
+            // remScale の補正量として elseIfExtraLen に記録する
+            for (let j = totalDigits; j < aDigits.length; j++) {
+                currentVal = currentVal * 10n + BigInt(aDigits[j]);
+            }
+            elseIfExtraLen = aDigits.length - totalDigits;
             lastRemIy = iy;
             remainderDotFixed = true;
         }
@@ -346,8 +353,8 @@ class AlgoDiv extends AlgoBase {
         // 余り行の表示(map)を読まず、必ずスケール補正して元の値に戻す。
         let finalRemainderStr;
         if (bFracLen > 0) {
-            // currentVal = 実際の余り × 10^(bFracLen + extraDigits)
-            const remScale = bFracLen + extraDigits;
+            // currentVal = 実際の余り × 10^(bFracLen + extraDigits + elseIfExtraLen)
+            const remScale = bFracLen + extraDigits + elseIfExtraLen;
             let remPower = 1n;
             for (let i = 0; i < remScale; ++i) remPower *= 10n;
             const remWhole = currentVal / remPower;
@@ -434,8 +441,8 @@ class AlgoDiv extends AlgoBase {
         console.assert(this.testEntryEx('7.955', '7.89', '1.00 … 0.065', '2'));
         console.assert(this.testEntryEx('0.3', '0.25', '1 … 0.05'));
         console.assert(this.testEntryEx('1.3', '0.25', '5 … 0.05'));
-        console.assert(this.testEntryEx('0.01', '0.1', '0 … 0.01')); // FIXME
-        console.assert(this.testEntryEx('0.25', '0.3', '0 … 0.25')); // FIXME
+        console.assert(this.testEntryEx('0.01', '0.1', '0 … 0.01'));
+        console.assert(this.testEntryEx('0.25', '0.3', '0 … 0.25'));
         console.assert(this.testEntryEx('1', '0.3', '3.3 … 0.01', '1'));
         // 【ちびむすより引用】ここから
         console.assert(this.testEntryEx('63', '2', '31 … 1'));
