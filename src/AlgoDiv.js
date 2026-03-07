@@ -242,16 +242,15 @@ class AlgoDiv extends AlgoBase {
         // 余りを確定するため残りの桁を全部下ろしてから小数点を描画する
         let remainderDotFixed = false;
         if (lastRemIy !== null && currentVal > 0n && totalDigits < aDigits.length) {
-            this.addCommand(['output', `指定した桁で打ち切りますが、余りを確定するため、残りの桁を全部下ろします。`]);
+            this.addCommand(['output', `ここで計算を打ち切ります。あまりをぜんぶ下ろします。`]);
             for (let j = totalDigits; j < aDigits.length; j++) {
                 const digitChar = aDigits[j];
                 const ix = aStartIx + j;
                 currentVal = currentVal * 10n + BigInt(digitChar);
-                this.addCommand(['output', `右の桁(けた)から ${digitChar} を下ろします。`]);
                 this.addCommand(['drawDigit', ix, lastRemIy, digitChar]);
                 this.setMapDigit(ix, lastRemIy, digitChar);
-                this.addCommand(['step']);
             }
+            this.addCommand(['step']);
             // 余りの行に小数点を描画する（被除数の小数点位置と同じ列）
             if (aDotIdx < aDigits.length) {
                 const dotIx = aStartIx + aDotIdx;
