@@ -341,11 +341,12 @@ class AlgoDiv extends AlgoBase {
             }
             this.addCommand(['step']);
         }
-        // 浮動小数点誤差を避けるため、あまりは文字列として扱う
+        // 浮動小数点誤差を避けるため、あまりは BigInt から文字列化する
+        // 特に b が小数(bFracLen>0)のときは、最後まで「整数化されたスケール」の currentVal を持っているため、
+        // 余り行の表示(map)を読まず、必ずスケール補正して元の値に戻す。
         let finalRemainderStr;
-        if (bFracLen > 0 && extraDigits > 0 && currentVal > 0n) {
-            // bFracLen>0 かつ extraDigits>0 の場合: BigInt から直接計算（スケール補正）
-            // 正しいスケール: currentVal = 実際の余り × 10^(bFracLen + extraDigits)
+        if (bFracLen > 0) {
+            // currentVal = 実際の余り × 10^(bFracLen + extraDigits)
             const remScale = bFracLen + extraDigits;
             let remPower = 1n;
             for (let i = 0; i < remScale; ++i) remPower *= 10n;
@@ -359,23 +360,8 @@ class AlgoDiv extends AlgoBase {
             }
         }
         else if (lastRemIy !== null) {
-            // 余り行が描画済みの場合、内部マップから読み取る（fixAndReadRowNumber で補正済み値を使用）
+            // b が整数のときは、余り行(map)から読み取った値でよい
             finalRemainderStr = this.fixAndReadRowNumber(lastRemIy);
-        }
-        else if (bFracLen > 0) {
-            // 余り行がない場合（例：商が0で除算ステップがなかった場合）はBigInt演算で求める（浮動小数点誤差を避ける）
-            let power = BigInt(1);
-            for (let i = 0; i < bFracLen; ++i)
-                power *= BigInt(10);
-            const whole = currentVal / power;
-            const frac = currentVal % power;
-            if (frac === 0n) {
-                finalRemainderStr = whole.toString();
-            }
-            else {
-                const fracStr = frac.toString().padStart(bFracLen, '0').replace(/0+$/, '');
-                finalRemainderStr = `${whole}.${fracStr}`;
-            }
         }
         else {
             finalRemainderStr = currentVal.toString();
