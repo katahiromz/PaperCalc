@@ -13,28 +13,9 @@ class AlgoDiv extends AlgoBase {
         // 長除法で割り算を行う
         this.clearMapping();
         this.addCommand(['output', `これから ${a} ÷ ${b} を計算します。`]);
-        // 1. 小数点の調整（除数を整数にする）―― 計算値を求める
-        const bFracLen = this.getFracLen(b);
-        const aFracLen = this.getFracLen(a);
-        // workB: bの小数点を除去して整数文字列化（誤差なし）
-        const workB = bFracLen > 0 ? b.replace('.', '').replace(/^0+/, '') || '0' : b;
-        const bVal = BigInt(workB);
-        // workA: aの小数点をbFracLen桁右にずらした文字列（aDigits・aDotIdx算出用）
-        let workA = a;
-        if (bFracLen > 0) {
-            let rawA = a.replace('.', '');
-            let newDotPos = (a.includes('.') ? a.indexOf('.') : a.length) + bFracLen;
-            while (rawA.length < newDotPos)
-                rawA += '0';
-            workA = newDotPos < rawA.length
-                ? rawA.substring(0, newDotPos) + '.' + rawA.substring(newDotPos)
-                : rawA;
-            workA = workA.replace(/^0+/, '') || '0';
-            if (workA.startsWith('.'))
-                workA = '0' + workA;
-        }
-        const aDigits = workA.replace('.', '');
-        const aDotIdx = workA.includes('.') ? workA.indexOf('.') : workA.length;
+        // 1. 入力正規化（除数を整数にするため小数点をシフト）
+        const { bFracLen, aFracLen, workB, bVal, aDigits, aDotIdx } =
+            this._normalizeInputs(a, b);
         // 2. 割られる数(A)と割る数(B)を元の値でそのまま配置する
         this.addCommand(['output', `わられる数 ${a} とわる数 ${b} を図のように書いてください。`]);
         // 除数(B)を元の値で配置
@@ -101,25 +82,19 @@ class AlgoDiv extends AlgoBase {
         let lastRemIy = null; // 最後の余り行のiy
         let lastRemIx = null; // 最後の余り行の右端ix（ループ時のix）
         let quotientDotDrawn = false;
-        // --- 商は i(処理回数)ベースで記録する（答え文字列生成用） ---
+        // 商は i(処理回数)ベースで記録する（答え文字列生成用）
         const quotientDigits = new Array(totalDigits).fill(null); // '0'..'9' or null
-        let dotPos = null; // i基準。dotPos の前に '.' を入れる
-        // 商の小数点位置を決定
-        if (aDotIdx < aDigits.length) {
-            dotPos = aDotIdx;
-        }
-        else if (extraDigits > 0) {
-            dotPos = aDigits.length;
-        }
+        // 商の小数点位置を決定（i基準。dotPos の前に '.' を入れる）
+        const dotPos = this._computeQuotientDotPos(aDotIdx, aDigits, extraDigits);
+        // 商の数字を書くヘルパー
         const putQuotientDigit = (i, ix, digitChar) => {
             this.addCommand(['drawDigit', ix, origin_iy, digitChar]);
             this.setMapDigit(ix, origin_iy, digitChar);
             quotientDigits[i] = digitChar;
         };
+        // 商の小数点を（まだ描かれていなければ）描くヘルパー
         const putQuotientDotIfNeeded = () => {
-            if (dotPos === null)
-                return;
-            if (quotientDotDrawn)
+            if (dotPos === null || quotientDotDrawn)
                 return;
             const dotIx = aStartIx + dotPos;
             this.addCommand(['drawDot', dotIx, origin_iy]);
@@ -133,7 +108,7 @@ class AlgoDiv extends AlgoBase {
             const digit = parseInt(digitChar);
             currentVal = currentVal * 10n + BigInt(digit);
             // 数字を下ろす処理
-            if (i > 0 && iy != origin_iy + 1) {
+            if (i > 0 && iy !== origin_iy + 1) {
                 if (i < aDigits.length) {
                     this.addCommand(['output', `右の桁(けた)から ${digit} を下ろします。`]);
                     this.addCommand(['drawDigit', ix, iy, digitChar]);
@@ -151,39 +126,40 @@ class AlgoDiv extends AlgoBase {
                 putQuotientDotIfNeeded();
             }
             if (currentVal >= bVal) {
-                const q = Number(currentVal / bVal);
-                const qChar = q.toString();
-                // autoDigitMul は「1桁×多桁」なので q は 0..9 のはず
+                // 商の1桁を計算する（autoDigitMul は「1桁×多桁」なので qNum は 0..9 のはず）
+                const qNum = Number(currentVal / bVal);
+                const qChar = qNum.toString();
+                const productBig = BigInt(qNum) * bVal;
                 console.assert(qChar.length === 1);
-                this.addCommand(['output', `${currentVal} の中に ${bVal} は ${q} 個あります。`]);
+                this.addCommand(['output', `${currentVal} の中に ${bVal} は ${qNum} 個あります。`]);
                 // 商をセット
                 putQuotientDigit(i, ix, qChar);
                 isFirstDigit = false;
                 // 掛け算
                 iy++;
-                this.addCommand(['output', `商の ${q} とわる数 ${bVal} をかけます。`]);
+                this.addCommand(['output', `商の ${qNum} とわる数 ${bVal} をかけます。`]);
                 this.autoDigitMul(workB, qChar, ix, iy);
                 // 引き算の線
                 this.addCommand(['output', `下に、ひき算の線を描きます。`]);
-                const productLen = (BigInt(q) * bVal).toString().length;
+                const productLen = productBig.toString().length;
                 this.addCommand(['drawLine', ix - productLen + 1, iy + 1, aStartIx + Math.max(totalDigits, i + 1), iy + 1]);
                 this.addCommand(['step']);
-                // 引き算の結果（あまり）
+                // 引き算の結果（余り）
                 iy++;
-                const remainder = currentVal - BigInt(q) * bVal;
+                const remainder = currentVal - productBig;
                 const remStr = remainder.toString();
-                this.addCommand(['output', `${currentVal} から、かけ算の答え ${BigInt(q) * bVal} を引きます。`]);
+                this.addCommand(['output', `${currentVal} から、かけ算の答え ${productBig} を引きます。`]);
                 for (let j = remStr.length - 1; j >= 0; --j) {
                     const targetIx = ix - (remStr.length - 1 - j);
                     this.addCommand(['drawDigit', targetIx, iy, remStr[j]]);
                     this.setMapDigit(targetIx, iy, remStr[j]);
                     this.addCommand(['step']);
                 }
-                this.addCommand(['output', `${currentVal} 引く ${BigInt(q) * bVal} で ${remainder} あまりました。`]);
+                this.addCommand(['output', `${currentVal} 引く ${productBig} で ${remainder} あまりました。`]);
                 this.addCommand(['step']);
                 lastRemIy = iy;
                 lastRemIx = ix;
-                // --- 重要: remainder を次のループの currentVal に反映 ---
+                // remainder を次のループの currentVal に反映
                 currentVal = remainder;
                 // currentVal が 0 になっても、被除数(aDigits)の残り桁がある間は打ち切らない
                 if (currentVal === 0n && extraDigits > 0 && i >= aDigits.length) {
@@ -203,46 +179,14 @@ class AlgoDiv extends AlgoBase {
         if (!quotientDotDrawn) {
             putQuotientDotIfNeeded();
         }
-        // --- 商文字列を quotientDigits + dotPos から構築する ---
-        // 商の表示開始位置（整数部の先頭の不要な0を避ける）
-        let first = 0;
-        for (let i = 0; i < totalDigits; i++) {
-            if (quotientDigits[i] !== null) {
-                first = i;
-                break;
-            }
-            if (i === totalDigits - 1)
-                first = totalDigits - 1;
-        }
-        // dot があるなら、dotの左に最低1桁必要
-        if (dotPos !== null) {
-            first = Math.min(first, Math.max(0, dotPos - 1));
-        }
-        // null は「その桁は書かなかった」だが、答えとしては 0 扱いにする
-        const filled = quotientDigits.map(d => (d === null ? '0' : d));
-        let quotientStr = '';
-        if (dotPos === null || dotPos >= totalDigits) {
-            quotientStr = filled.slice(first).join('');
-            quotientStr = quotientStr.replace(/^0+(?=\d)/, '') || '0';
-        }
-        else {
-            // 整数部（dotより左）
-            let intPart = filled.slice(first, dotPos).join('');
-            intPart = intPart.replace(/^0+(?=\d)/, '') || '0';
-            // 小数部（dotより右）は仕様Aで必ず extraDigits 桁
-            let fracPart = filled.slice(dotPos, dotPos + extraDigits).join('');
-            if (fracPart.length < extraDigits)
-                fracPart = fracPart.padEnd(extraDigits, '0');
-            if (fracPart.length > extraDigits)
-                fracPart = fracPart.substring(0, extraDigits);
-            quotientStr = `${intPart}.${fracPart}`;
-        }
-        const quotient = quotientStr;
+        // 商文字列を quotientDigits + dotPos から構築する
+        const quotient = this._buildQuotientStr(quotientDigits, dotPos, totalDigits, extraDigits);
         // 指定桁(c)で打ち切った際に被除数(aDigits)にまだ処理していない桁がある場合、
         // 余りを確定するため残りの桁を全部下ろしてから小数点を描画する
         // （currentVal が 0 でも、未処理桁がある場合は余りを構成するため条件から除外）
         let remainderDotFixed = false;
         if (lastRemIy !== null && totalDigits < aDigits.length) {
+            // 余り行が既にある場合：未処理桁のみを lastRemIy 行に追記する
             this.addCommand(['output', `ここで計算を打ち切ります。あまりをぜんぶ下ろします。`]);
             for (let j = totalDigits; j < aDigits.length; j++) {
                 const digitChar = aDigits[j];
@@ -307,30 +251,8 @@ class AlgoDiv extends AlgoBase {
             this.setMapDot(dotIx, lastRemIy);
             this.addCommand(['step']);
         }
-        // 浮動小数点誤差を避けるため、あまりは文字列として扱う
-        let finalRemainderStr;
-        if (lastRemIy !== null) {
-            // 余り行が描画済みの場合、内部マップから読み取る（fixAndReadRowNumber で補正済み値を使用）
-            finalRemainderStr = this.fixAndReadRowNumber(lastRemIy);
-        }
-        else if (bFracLen > 0) {
-            // 余り行がない場合（例：商が0で除算ステップがなかった場合）はBigInt演算で求める（浮動小数点誤差を避ける）
-            let power = BigInt(1);
-            for (let i = 0; i < bFracLen; ++i)
-                power *= BigInt(10);
-            const whole = currentVal / power;
-            const frac = currentVal % power;
-            if (frac === 0n) {
-                finalRemainderStr = whole.toString();
-            }
-            else {
-                const fracStr = frac.toString().padStart(bFracLen, '0').replace(/0+$/, '');
-                finalRemainderStr = `${whole}.${fracStr}`;
-            }
-        }
-        else {
-            finalRemainderStr = currentVal.toString();
-        }
+        // 浮動小数点誤差を避けるため、余りは文字列として確定する
+        const finalRemainderStr = this._computeFinalRemainderStr(lastRemIy, currentVal, bFracLen);
         let answer;
         if (finalRemainderStr === '' || finalRemainderStr === '0') {
             answer = quotient;
@@ -346,6 +268,93 @@ class AlgoDiv extends AlgoBase {
             const { x, y } = this.convert3(0, iy + 2);
             this.addCommand(['drawCenterText', y, text]);
         }
+    }
+    // 入力正規化（除数を整数にするため小数点をシフト）
+    // 戻り値: { bFracLen, aFracLen, workB, bVal, aDigits, aDotIdx }
+    _normalizeInputs(a, b) {
+        const bFracLen = this.getFracLen(b);
+        const aFracLen = this.getFracLen(a);
+        // workB: bの小数点を除去して整数文字列化（誤差なし）
+        const workB = bFracLen > 0 ? b.replace('.', '').replace(/^0+/, '') || '0' : b;
+        const bVal = BigInt(workB);
+        // workA: aの小数点をbFracLen桁右にずらした文字列（aDigits・aDotIdx算出用）
+        let workA = a;
+        if (bFracLen > 0) {
+            let rawA = a.replace('.', '');
+            let newDotPos = (a.includes('.') ? a.indexOf('.') : a.length) + bFracLen;
+            while (rawA.length < newDotPos)
+                rawA += '0';
+            workA = newDotPos < rawA.length
+                ? rawA.substring(0, newDotPos) + '.' + rawA.substring(newDotPos)
+                : rawA;
+            workA = workA.replace(/^0+/, '') || '0';
+            if (workA.startsWith('.'))
+                workA = '0' + workA;
+        }
+        const aDigits = workA.replace('.', '');
+        const aDotIdx = workA.includes('.') ? workA.indexOf('.') : workA.length;
+        return { bFracLen, aFracLen, workB, bVal, aDigits, aDotIdx };
+    }
+    // 商の小数点位置を決定する（i基準。dotPos の前に '.' を入れる）
+    _computeQuotientDotPos(aDotIdx, aDigits, extraDigits) {
+        if (aDotIdx < aDigits.length)
+            return aDotIdx;
+        if (extraDigits > 0)
+            return aDigits.length;
+        return null;
+    }
+    // 商文字列を quotientDigits + dotPos から構築する
+    _buildQuotientStr(quotientDigits, dotPos, totalDigits, extraDigits) {
+        // 商の表示開始位置（整数部の先頭の不要な0を避ける）
+        let first = 0;
+        for (let i = 0; i < totalDigits; i++) {
+            if (quotientDigits[i] !== null) {
+                first = i;
+                break;
+            }
+            if (i === totalDigits - 1)
+                first = totalDigits - 1;
+        }
+        // dot があるなら、dotの左に最低1桁必要
+        if (dotPos !== null) {
+            first = Math.min(first, Math.max(0, dotPos - 1));
+        }
+        // null は「その桁は書かなかった」だが、答えとしては 0 扱いにする
+        const filled = quotientDigits.map(d => (d === null ? '0' : d));
+        if (dotPos === null || dotPos >= totalDigits) {
+            const str = filled.slice(first).join('');
+            return str.replace(/^0+(?=\d)/, '') || '0';
+        }
+        // 整数部（dotより左）
+        let intPart = filled.slice(first, dotPos).join('');
+        intPart = intPart.replace(/^0+(?=\d)/, '') || '0';
+        // 小数部（dotより右）は仕様Aで必ず extraDigits 桁
+        let fracPart = filled.slice(dotPos, dotPos + extraDigits).join('');
+        if (fracPart.length < extraDigits)
+            fracPart = fracPart.padEnd(extraDigits, '0');
+        if (fracPart.length > extraDigits)
+            fracPart = fracPart.substring(0, extraDigits);
+        return `${intPart}.${fracPart}`;
+    }
+    // 余り文字列を確定する（浮動小数点誤差を避けるため BigInt/マップ読み取りを使用）
+    _computeFinalRemainderStr(lastRemIy, currentVal, bFracLen) {
+        if (lastRemIy !== null) {
+            // 余り行が描画済みの場合、内部マップから読み取る（fixAndReadRowNumber で補正済み値を使用）
+            return this.fixAndReadRowNumber(lastRemIy);
+        }
+        if (bFracLen > 0) {
+            // 余り行がない場合（例：商が0で除算ステップがなかった場合）はBigInt演算で求める
+            let power = BigInt(1);
+            for (let i = 0; i < bFracLen; ++i)
+                power *= BigInt(10);
+            const whole = currentVal / power;
+            const frac = currentVal % power;
+            if (frac === 0n)
+                return whole.toString();
+            const fracStr = frac.toString().padStart(bFracLen, '0').replace(/0+$/, '');
+            return `${whole}.${fracStr}`;
+        }
+        return currentVal.toString();
     }
     // コマンドの構築
     buildCommands() {
