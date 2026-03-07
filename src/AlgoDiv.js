@@ -269,6 +269,36 @@ class AlgoDiv extends AlgoBase {
             }
             remainderDotFixed = true;
         }
+        else if (lastRemIy === null && totalDigits < aDigits.length && bFracLen === 0) {
+            // 商がすべて 0 で割り算ステップが発生せず、かつ未処理の桁がある場合：
+            // あまりとして被除数全体を新しい行に表示する
+            iy++;
+            this.addCommand(['output', `ここで計算を打ち切ります。あまりをぜんぶ下ろします。`]);
+            // ループで処理済みの先頭 totalDigits 桁を描画する
+            for (let j = 0; j < totalDigits; j++) {
+                const digitChar = aDigits[j];
+                const ix = aStartIx + j;
+                this.addCommand(['drawDigit', ix, iy, digitChar]);
+                this.setMapDigit(ix, iy, digitChar);
+            }
+            // 残りの桁を描画する
+            for (let j = totalDigits; j < aDigits.length; j++) {
+                const digitChar = aDigits[j];
+                const ix = aStartIx + j;
+                this.addCommand(['drawDigit', ix, iy, digitChar]);
+                this.setMapDigit(ix, iy, digitChar);
+            }
+            this.addCommand(['step']);
+            // 小数点を描画する
+            if (aDotIdx < aDigits.length) {
+                const dotIx = aStartIx + aDotIdx;
+                this.addCommand(['drawDot', dotIx, iy]);
+                this.setMapDot(dotIx, iy);
+                this.addCommand(['step']);
+            }
+            lastRemIy = iy;
+            remainderDotFixed = true;
+        }
         // あまり（表示用に元スケールへ戻す）
         // 条件: 除数が小数(bFracLen>0)かつ余りが非ゼロかつ余り行が描画済みで、かつ上記の処理がまだの場合
         if (bFracLen > 0 && currentVal > 0n && lastRemIy !== null && !remainderDotFixed) {
@@ -362,7 +392,7 @@ class AlgoDiv extends AlgoBase {
         console.assert(this.testEntryEx('99.90', '990.0', '0 … 99.9', '0'));
         console.assert(this.testEntryEx('123.55', '789', '0.1 … 44.65', '1'));
         console.assert(this.testEntryEx('12.345', '1', '12.34 … 0.005', '2'));
-        console.assert(this.testEntryEx('12.355', '789', '0.0 … 12.355', '1')); // FIXME
+        console.assert(this.testEntryEx('12.355', '789', '0.0 … 12.355', '1'));
         // 【ちびむすより引用】ここから
         console.assert(this.testEntryEx('63', '2', '31 … 1'));
         console.assert(this.testEntryEx('88', '4', '22'));
