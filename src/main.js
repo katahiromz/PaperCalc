@@ -3,7 +3,7 @@
 // License: MIT
 "use strict";
 const VERSION = '1.0.9'; // バージョン
-const DEBUGGING = true; // デバッグ中か？
+const DEBUGGING = false; // デバッグ中か？
 document.addEventListener('DOMContentLoaded', function () {
     Paper.g_minimal = true; // 紙の拡張を最小限にする
     let canvas = document.getElementById('my-canvas');
