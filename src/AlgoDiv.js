@@ -19,6 +19,8 @@ class AlgoDiv extends AlgoBase {
         let a_digits = a_info.digits, b_digits = b_info.digits;
         // 小数点の位置
         let a_fracLen = a_info.frac_len, b_fracLen = b_info.frac_len;
+        // 精度
+        let accuracy = parseInt(c);
         // 割られる数(A)と割る数(B)を元の値でそのまま配置する
         this.addCommand(['output', `わられる数 ${a} とわる数 ${b} を図のように書いてください。`]);
         // 被除数(A)を配置
@@ -29,8 +31,9 @@ class AlgoDiv extends AlgoBase {
         // 線を描く
         this.addCommand(['output', `図のように線を描いてください。`]);
         this.addCommand(['drawDivCurve', -a_digits.length - 1, origin_iy + 1]);
-        this.addCommand(['drawLine', -a_digits.length - 0.7, origin_iy + 1, 0, origin_iy + 1]);
+        this.addCommand(['drawLine', -a_digits.length - 0.7, origin_iy + 1, accuracy, origin_iy + 1]);
         // 除数に小数点がある場合の処理
+        let shift = 0;
         if (b_fracLen > 0) {
             this.addCommand(['output', `わる数に小数点がありますので、わられる数とわる数を ${ 10**b_fracLen } 倍して、わる数の小数点を消します。`]);
             // わる数の小数点を消す
@@ -46,15 +49,100 @@ class AlgoDiv extends AlgoBase {
             if (a_fracLen > b_fracLen) {
                 // 小数点の位置をずらす
                 this.addCommand(['drawDot', -(a_fracLen - b_fracLen), origin_iy + 1]);
+                this.setMapDot(-(a_fracLen - b_fracLen), origin_iy + 1);
             } else if (a_fracLen < b_fracLen) {
                 // ゼロを追加
                 for (let i = 0; i < (b_fracLen - a_fracLen); ++i) {
                     this.addCommand(['drawDigit', i, origin_iy + 1, '0', true]);
                 }
+                this.clearMapDot(origin_iy + 1);
+            }
+            shift = b_fracLen;
+        }
+        this.addCommand(['drawDigit', 0, origin_iy - 1, '0', true]);
+        this.addCommand(['drawDot', 0, origin_iy - 1]);
+        // 左の桁から見ていく
+        let iy = origin_iy + 2;
+        let foundDot = false; // 小数点を見つけた？フラグ変数
+        let foundNonZero = false; // 非ゼロを見つけた？フラグ変数
+        for (let i = -a_digits.length; i < Math.max(accuracy - shift, a_fracLen - shift); ++i) {
+            if (foundDot && foundNonZero) { // 小数点も非ゼロも見つけた
+            } else if (foundDot && !foundNonZero) { // 非ゼロは見つけてないが、小数点を見つけた
+            } else if (!foundDot && foundNonZero) { // 小数点は見つけてないが、非ゼロを見つけた
+                let digit = this.mapDigit(i, origin_iy + 1);
+                this.addCommand(['output', `わられる数から ${digit} を下ろします。`]);
+                this.addCommand(['drawDigit', i, iy, digit]);
+                this.mapDigit(i, iy, digit);
+                let digits = this.readRowNumber(iy, true);
+                console.log(digit, digits);
+                if (comparePositiveNumbers(digits, b_digits) < 0) {
+                    this.addCommand(['output', `${digits} は ${b_digits} より小さいので 0 を立てます。`]);
+                    this.addCommand(['drawDigit', i, origin_iy, '0']);
+                    this.mapDigit(i, origin_iy, '0');
+                    continue;
+                }
+                ++iy;
+                // 商となる個数を数える
+                let num1 = BigInt(digits);
+                let num2 = BigInt(b_digits);
+                let count = BigInt(0);
+                while (num1 >= num2) {
+                    num1 -= num2;
+                    ++count;
+                }
+                this.addCommand(['output', `${digits} の中に ${b_digits} が ${count} 個ありますので、${count} を立てます。`]);
+                this.addCommand(['drawDigit', i, origin_iy, count.toString()]);
+                this.addCommand(['step']);
+                this.addCommand(['output', `${b_digits} × ${count} を計算します。`]);
+                this.autoDigitMul(b_digits, count.toString(), i, iy);
+                this.addCommand(['step']);
+
+                this.addCommand(['output', `引き算の線を描きます。`]);
+                this.addCommand(['drawLine', i - 1, iy + 1, accuracy, iy + 1]);
+                this.addCommand(['step']);
+
+                this.addCommand(['output', `${digits} 引く ${BigInt(b_digits) * count} を計算します。`]);
+                this.autoPutDigitsEx(num1.toString(), i + 1, iy + 1);
+                this.addCommand(['step']);
+                ++iy;
+            } else if (!foundDot && !foundNonZero) { // 小数点も非ゼロも見つけてない
+                let digits = '';
+                for (let k = -a_digits.length; k <= i; ++k) {
+                    digits += this.mapDigit(k, origin_iy + 1);
+                }
+                console.log(digits);
+                if (comparePositiveNumbers(digits, b_digits) < 0) {
+                    this.addCommand(['output', `${digits} は ${b_digits} より小さいので商を立てられない。`]);
+                    continue;
+                }
+                // 商となる個数を数える
+                let num1 = BigInt(digits);
+                let num2 = BigInt(b_digits);
+                let count = BigInt(0);
+                while (num1 >= num2) {
+                    num1 -= num2;
+                    ++count;
+                }
+                this.addCommand(['output', `${digits} の中に ${b_digits} が ${count} 個ありますので、${count} を立てます。`]);
+                this.addCommand(['drawDigit', i, origin_iy, count.toString()]);
+                this.addCommand(['step']);
+                this.addCommand(['output', `${b_digits} × ${count} を計算します。`]);
+                this.autoDigitMul(b_digits, count.toString(), i, iy);
+                this.addCommand(['step']);
+
+                this.addCommand(['output', `引き算の線を描きます。`]);
+                this.addCommand(['drawLine', i - 1, iy + 1, accuracy, iy + 1]);
+                this.addCommand(['step']);
+
+                this.addCommand(['output', `${digits} 引く ${BigInt(b_digits) * count} を計算します。`]);
+                this.autoPutDigitsEx(num1.toString(), i + 1, iy + 1);
+                this.addCommand(['step']);
+                foundNonZero = true;
+                ++iy;
+            } else {
+                console.assert(false); // これは起こりえない
             }
         }
-        this.addCommand(['drawDigit', -a_fracLen, origin_iy, '8']);
-        this.addCommand(['drawDot', -a_fracLen, origin_iy]);
     }
     // コマンドの構築
     buildCommands() {
