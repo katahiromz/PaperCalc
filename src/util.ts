@@ -100,6 +100,8 @@ interface NumberInfo {
   int_len: number;
   fraction: string;
   frac_len: number;
+  digits: string;
+  digits_len: number;
 }
 
 // 数値の情報
@@ -117,7 +119,8 @@ const getNumberInfo = (numStr: string): NumberInfo | null => {
   if (integer === '') integer = '0';
   let fraction = found[2] ? found[2].substr(1) : '';
   let numeric = parseInt(numStr);
-  return { numeric, numStr, integer, int_len: integer.length, fraction, frac_len: fraction.length };
+  let digits = numStr.replaceAll('.', '');
+  return { numeric, numStr, integer, int_len: integer.length, fraction, frac_len: fraction.length, digits, digits_len: digits.length };
 };
 
 // 数値文字列の整形。今回は筆算なので、符号付きの数値は扱わない。

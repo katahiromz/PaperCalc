@@ -800,8 +800,9 @@ class AlgoBase {
     // 小数点を描画する
     drawDot(ix, iy, is_red = false) {
         let { x: x0, y: y0 } = this.convert(ix - 0.1, iy + 0.8);
+        let cxy = LINE_WIDTH * 0.8;
         this.paper.fillStyle = is_red ? 'red' : 'black';
-        this.paper.fillCircle(x0, y0, LINE_WIDTH);
+        this.paper.fillRect(x0 - cxy, y0 - cxy, 2*cxy, 2*cxy);
     }
     // 小数点を消す
     slashDot(ix, iy, is_red = false) {

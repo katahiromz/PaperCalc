@@ -13,20 +13,47 @@ class AlgoDiv extends AlgoBase {
         // 長除法で割り算を行う
         this.clearMapping();
         this.addCommand(['output', `これから ${a} ÷ ${b} を計算します。`]);
+        // 数の情報を取得
+        let a_info = getNumberInfo(a), b_info = getNumberInfo(b);
+        // 小数点なし
+        let a_digits = a_info.digits, b_digits = b_info.digits;
+        // 小数点の位置
+        let a_fracLen = a_info.frac_len, b_fracLen = b_info.frac_len;
         // 割られる数(A)と割る数(B)を元の値でそのまま配置する
         this.addCommand(['output', `わられる数 ${a} とわる数 ${b} を図のように書いてください。`]);
-        // 小数点なし
-        let a_digits = a.replaceAll('.', '');
-        let b_digits = b.replaceAll('.', '');
-        // 被除数(A)を元の値で配置
+        // 被除数(A)を配置
         this.autoPutDigitsEx(a, 0, origin_iy + 1);
-        // 除数(B)を元の値で配置
+        // 除数(B)を配置
         this.autoPutDigitsEx(b, -a_digits.length - 1, origin_iy + 1);
+        this.addCommand(['step']);
         // 線を描く
         this.addCommand(['output', `図のように線を描いてください。`]);
         this.addCommand(['drawDivCurve', -a_digits.length - 1, origin_iy + 1]);
         this.addCommand(['drawLine', -a_digits.length - 0.7, origin_iy + 1, 0, origin_iy + 1]);
-        this.addCommand(['drawDigit', 0, 0, '8']);
+        // 除数に小数点がある場合の処理
+        if (b_fracLen > 0) {
+            this.addCommand(['output', `わる数に小数点がありますので、わられる数とわる数を ${ 10**b_fracLen } 倍して、わる数の小数点を消します。`]);
+            this.addCommand(['slashDot', -(a_digits.length + b_fracLen + 1), origin_iy + 1]);
+            if (a_fracLen == 0) {
+                // 小数点の位置を強調するために小数点を書いてから消すようにする
+                this.addCommand(['drawDot', -a_fracLen, origin_iy + 1]);
+            }
+            // 小数点を消す
+            if (a_fracLen >= 0) {
+                this.addCommand(['slashDot', -a_fracLen, origin_iy + 1]);
+            }
+            if (a_fracLen > b_fracLen) {
+                // 小数点の位置をずらす
+                this.addCommand(['drawDot', -(a_fracLen - b_fracLen), origin_iy + 1]);
+            } else if (a_fracLen < b_fracLen) {
+                // ゼロを追加
+                for (let i = 0; i < (b_fracLen - a_fracLen); ++i) {
+                    this.addCommand(['drawDigit', i, origin_iy + 1, '0', true]);
+                }
+            }
+        }
+        this.addCommand(['drawDigit', -a_fracLen, origin_iy, '8']);
+        this.addCommand(['drawDot', -a_fracLen, origin_iy]);
     }
     // コマンドの構築
     buildCommands() {
