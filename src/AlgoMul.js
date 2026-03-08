@@ -67,8 +67,8 @@ class AlgoMul extends AlgoBase {
             answer_iy = result_iy_start;
         }
         // 小数点の処理
-        let a_frac_len = this.getFracLen(a_str);
-        let b_frac_len = this.getFracLen(b_str);
+        let a_frac_len = getFracLen(a_str);
+        let b_frac_len = getFracLen(b_str);
         let frac_len_sum = a_frac_len + b_frac_len;
         if (frac_len_sum > 0) {
             this.addCommand(['output', `二つの数の小数点以下の桁数(けたすう)を足し合わせた位置に小数点を付けます。`]);

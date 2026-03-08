@@ -21,7 +21,7 @@ class AlgoDiv extends AlgoBase {
         // 被除数(A)を元の値で配置
         this.autoPutDigitsEx(a, 0, origin_iy + 1);
         // 除数(B)を元の値で配置
-        this.autoPutDigitsEx(b, -b_digits.length - 2, origin_iy + 1);
+        this.autoPutDigitsEx(b, -a_digits.length - 1, origin_iy + 1);
         // 線を描く
         this.addCommand(['output', `図のように線を描いてください。`]);
         this.addCommand(['drawDivCurve', -a_digits.length - 1, origin_iy + 1]);

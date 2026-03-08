@@ -309,13 +309,6 @@ class AlgoBase {
             return undefined;
         return this.max_x_by_ix(columns[iColumn]);
     }
-    // 小数部の長さ
-    getFracLen(str) {
-        let index = str.indexOf('.');
-        if (index == -1)
-            return 0;
-        return str.length - index - 1;
-    }
     // 数字を置く
     autoPutDigits(numStr, iy) {
         console.assert(typeof numStr === 'string');

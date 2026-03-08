@@ -221,3 +221,11 @@ function comparePositiveNumbers(a: string, b: string): number {
   if (paddedFracA < paddedFracB) return -1;
   return 0;
 }
+
+// 小数部の長さ
+function getFracLen(str: string): number {
+    let index = str.indexOf('.');
+    if (index == -1)
+        return 0;
+    return str.length - index - 1;
+}

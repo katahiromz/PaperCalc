@@ -44,7 +44,7 @@ class AlgoAdd extends AlgoBase {
         this.addCommand(['output', `一番右の位から足し算をしていきます。`]);
         this.autoDigitAdd(0, origin_iy + 1);
         // 答えの小数点
-        let fracMax = Math.max(this.getFracLen(a), this.getFracLen(b));
+        let fracMax = Math.max(getFracLen(a), getFracLen(b));
         {
             if (fracMax > 0) {
                 this.addCommand(['output', `小数があるときは、小数点を付けます。`]);
