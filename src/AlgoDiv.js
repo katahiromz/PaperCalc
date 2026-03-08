@@ -33,15 +33,16 @@ class AlgoDiv extends AlgoBase {
         // 除数に小数点がある場合の処理
         if (b_fracLen > 0) {
             this.addCommand(['output', `わる数に小数点がありますので、わられる数とわる数を ${ 10**b_fracLen } 倍して、わる数の小数点を消します。`]);
+            // わる数の小数点を消す
             this.addCommand(['slashDot', -(a_digits.length + b_fracLen + 1), origin_iy + 1]);
+            // わられる数の小数点を消す。わられる数に小数点がなかった場合は、小数点の位置を強調するために小数点を書いてから消すようにする
             if (a_fracLen == 0) {
-                // 小数点の位置を強調するために小数点を書いてから消すようにする
                 this.addCommand(['drawDot', -a_fracLen, origin_iy + 1]);
             }
-            // 小数点を消す
             if (a_fracLen >= 0) {
                 this.addCommand(['slashDot', -a_fracLen, origin_iy + 1]);
             }
+            // 小数点以下の桁数により場合分け
             if (a_fracLen > b_fracLen) {
                 // 小数点の位置をずらす
                 this.addCommand(['drawDot', -(a_fracLen - b_fracLen), origin_iy + 1]);
