@@ -21,17 +21,19 @@ class AlgoDiv extends AlgoBase {
         let a_fracLen = a_info.frac_len, b_fracLen = b_info.frac_len;
         // 精度
         let accuracy = parseInt(c);
-        // 割られる数(A)と割る数(B)を元の値でそのまま配置する
-        this.addCommand(['output', `わられる数 ${a} とわる数 ${b} を図のように書いてください。`]);
         // 被除数(A)を配置
+        this.addCommand(['output', `わられる数 ${a} を書いてください。`]);
         this.autoPutDigitsEx(a, 0, origin_iy + 1);
-        // 除数(B)を配置
-        this.autoPutDigitsEx(b, -a_digits.length - 1, origin_iy + 1);
         this.addCommand(['step']);
         // 線を描く
         this.addCommand(['output', `図のように線を描いてください。`]);
         this.addCommand(['drawDivCurve', -a_digits.length - 1, origin_iy + 1]);
         this.addCommand(['drawLine', -a_digits.length - 0.7, origin_iy + 1, accuracy, origin_iy + 1]);
+        this.addCommand(['step']);
+        // 除数(B)を配置
+        this.addCommand(['output', `左にわる数 ${b} を書いてください。`]);
+        this.autoPutDigitsEx(b, -a_digits.length - 1, origin_iy + 1);
+        this.addCommand(['step']);
         // 除数に小数点がある場合の処理
         let shift = 0;
         if (b_fracLen > 0) {
@@ -93,9 +95,9 @@ class AlgoDiv extends AlgoBase {
                 this.addCommand(['output', `${digits} の中に ${b_digits} が ${count} 個ありますので、${count} を立てます。`]);
                 this.addCommand(['drawDigit', i, origin_iy, count.toString()]);
                 this.addCommand(['step']);
+
                 this.addCommand(['output', `${b_digits} × ${count} を計算します。`]);
                 this.autoDigitMul(b_digits, count.toString(), i, iy);
-                this.addCommand(['step']);
 
                 this.addCommand(['output', `引き算の線を描きます。`]);
                 this.addCommand(['drawLine', i - 1, iy + 1, accuracy, iy + 1]);
@@ -103,7 +105,6 @@ class AlgoDiv extends AlgoBase {
 
                 this.addCommand(['output', `${digits} 引く ${BigInt(b_digits) * count} を計算します。`]);
                 this.autoPutDigitsEx(num1.toString(), i + 1, iy + 1);
-                this.addCommand(['step']);
                 ++iy;
             } else if (!foundDot && !foundNonZero) { // 小数点も非ゼロも見つけてない
                 let digits = '';
@@ -112,7 +113,7 @@ class AlgoDiv extends AlgoBase {
                 }
                 console.log(digits);
                 if (comparePositiveNumbers(digits, b_digits) < 0) {
-                    this.addCommand(['output', `${digits} は ${b_digits} より小さいので商を立てられない。`]);
+                    this.addCommand(['output', `${digits} は ${b_digits} より小さいので数を立てられません。`]);
                     continue;
                 }
                 // 商となる個数を数える
@@ -126,9 +127,9 @@ class AlgoDiv extends AlgoBase {
                 this.addCommand(['output', `${digits} の中に ${b_digits} が ${count} 個ありますので、${count} を立てます。`]);
                 this.addCommand(['drawDigit', i, origin_iy, count.toString()]);
                 this.addCommand(['step']);
+
                 this.addCommand(['output', `${b_digits} × ${count} を計算します。`]);
                 this.autoDigitMul(b_digits, count.toString(), i, iy);
-                this.addCommand(['step']);
 
                 this.addCommand(['output', `引き算の線を描きます。`]);
                 this.addCommand(['drawLine', i - 1, iy + 1, accuracy, iy + 1]);
@@ -136,7 +137,6 @@ class AlgoDiv extends AlgoBase {
 
                 this.addCommand(['output', `${digits} 引く ${BigInt(b_digits) * count} を計算します。`]);
                 this.autoPutDigitsEx(num1.toString(), i + 1, iy + 1);
-                this.addCommand(['step']);
                 foundNonZero = true;
                 ++iy;
             } else {
