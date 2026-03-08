@@ -348,7 +348,7 @@ class AlgoBase {
         }
     }
     // 数字を置く
-    autoPutDigitsEx(numStr, iy0) {
+    autoPutDigitsEx(numStr, ix0, iy0) {
         console.assert(typeof numStr === 'string');
         const info = getNumberInfo(numStr);
         if (!info) {
@@ -364,17 +364,17 @@ class AlgoBase {
         let kDot = numStr.length - m;
         // 整数部
         for (let k = 0; k < m; ++k) {
-            let ix = -numStr.length + k;
+            let ix = ix0 - numStr.length + k;
             this.addCommand(['drawDigit', ix, iy0, numStr[k]]);
             this.mapDigit(ix, iy0, numStr[k]);
         }
         if (iDot != -1) {
             // 小数点を描画
-            this.addCommand(['drawDot', -kDot, iy0]);
-            this.setMapDot(-kDot, iy0);
+            this.addCommand(['drawDot', ix0 - kDot, iy0]);
+            this.setMapDot(ix0 - kDot, iy0);
             // 小数部
             for (let k = m; k < numStr.length; ++k) {
-                let ix = -numStr.length + k;
+                let ix = ix0 - numStr.length + k;
                 this.addCommand(['drawDigit', ix, iy0, numStr[k]]);
                 this.mapDigit(ix, iy0, numStr[k]);
             }

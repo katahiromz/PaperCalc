@@ -18,11 +18,11 @@ class AlgoMul extends AlgoBase {
         let b_digits = b_str.replaceAll('.', '');
         // 被乗数(A)をセット (iy = origin_iy)
         this.addCommand(['output', `まず、上の方に ${a} を書きます。`]);
-        this.autoPutDigitsEx(a_str, origin_iy);
+        this.autoPutDigitsEx(a_str, 0, origin_iy);
         this.addCommand(['step']);
         // 乗数(B)をセット (iy = origin_iy + 1)
         this.addCommand(['output', `その下に ${b} を書きますが、右はしの数字をそろえてください。`]);
-        this.autoPutDigitsEx(b_str, origin_iy + 1);
+        this.autoPutDigitsEx(b_str, 0, origin_iy + 1);
         this.addCommand(['step']);
         // '×'を描画
         this.addCommand(['output', `２番目の数の左にバツ印(×)を書きます。`]);
