@@ -84,6 +84,8 @@ class AlgoDiv extends AlgoBase {
                 this.addCommand(['output', `わられる数から ${digit} を下ろします。`]);
                 this.addCommand(['drawDigit', i, iy, digit]);
                 this.mapDigit(i, iy, digit);
+
+                // iyから数を読み込む
                 let digits = this.readRowNumber(iy, true);
                 console.log(digit, digits);
                 if (comparePositiveNumbers(digits, b_digits) < 0) {
@@ -119,11 +121,12 @@ class AlgoDiv extends AlgoBase {
                 this.autoPutDigitsEx(num1.toString(), i + 1, iy + 1);
                 ++iy;
             } else { // 非ゼロを見つけてない
+                // (origin_iy + 1)から数を読み込む
                 let digits = '';
                 for (let k = -a_digits.length; k <= i; ++k) {
                     digits += this.mapDigit(k, origin_iy + 1);
                 }
-                console.log(digits);
+
                 if (comparePositiveNumbers(digits, b_digits) < 0) {
                     if (foundDot) {
                         this.addCommand(['output', `${digits} は ${b_digits} より小さいので数を立てられませんが、小数点を過ぎているので 0 を立てます。`]);
@@ -163,15 +166,15 @@ class AlgoDiv extends AlgoBase {
                 this.autoPutDigitsEx(num1.toString(), i + 1, iy + 1);
                 foundNonZero = true; // 非ゼロを見つけた
                 ++iy;
-            } else {
-                console.assert(false); // これは起こりえない
             }
         }
+
         // 必要ならば余りの行に小数点を打つ
         if (a_fracLen > 0) {
             this.addCommand(['drawDot', -a_fracLen, iy]);
             this.setMapDot(-a_fracLen, iy);
         }
+
         // 答えを求める
         let shou = this.fixAndReadRowNumber(origin_iy, false, true); // 商
         let amari = this.fixAndReadRowNumber(iy); // 余り
