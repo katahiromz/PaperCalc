@@ -218,6 +218,20 @@ class AlgoDiv extends AlgoBase {
     // 単体テスト
     unitTest() {
         // 【ちびむすより引用】ここから
+        console.assert(this.testEntryEx('13', '2', '6 … 1'));
+        console.assert(this.testEntryEx('73', '8', '9 … 1'));
+        console.assert(this.testEntryEx('62', '8', '7 … 6'));
+        console.assert(this.testEntryEx('50', '7', '7 … 1'));
+        console.assert(this.testEntryEx('33', '4', '8 … 1'));
+        console.assert(this.testEntryEx('43', '6', '7 … 1'));
+        console.assert(this.testEntryEx('29', '5', '5 … 4'));
+        console.assert(this.testEntryEx('57', '6', '9 … 3'));
+        console.assert(this.testEntryEx('32', '5', '6 … 2'));
+        console.assert(this.testEntryEx('19', '5', '3 … 4'));
+        console.assert(this.testEntryEx('78', '9', '8 … 6'));
+        console.assert(this.testEntryEx('19', '2', '9 … 1'));
+        // 【ちびむすより引用】ここまで
+        // 【ちびむすより引用】ここから
         console.assert(this.testEntryEx('63', '2', '31 … 1'));
         console.assert(this.testEntryEx('88', '4', '22'));
         console.assert(this.testEntryEx('95', '9', '10 … 5'));
@@ -325,6 +339,8 @@ class AlgoDiv extends AlgoBase {
         console.assert(this.testEntryEx('1.92', '0.8', '2.4', '1'));
         console.assert(this.testEntryEx('1.77', '0.3', '5.9', '1'));
         // 【ちびむすより引用】ここまで
+        console.assert(this.testEntryEx('1', '1', '1'));
+        console.assert(this.testEntryEx('999', '999', '1'));
         console.assert(this.testEntryEx('612', '3', '204'));
         console.assert(this.testEntryEx('100', '5', '20'));
         console.assert(this.testEntryEx('100', '20', '5'));
