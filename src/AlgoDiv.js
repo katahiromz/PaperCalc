@@ -21,6 +21,10 @@ class AlgoDiv extends AlgoBase {
         let a_fracLen = a_info.frac_len, b_fracLen = b_info.frac_len;
         // 精度
         let accuracy = parseInt(c);
+        // 修正された小数点の位置
+        let fixedDotPos = b_fracLen - a_fracLen;
+        // 右端の位置
+        let ix1 = accuracy + b_fracLen - a_fracLen;
         // 被除数(A)を配置
         this.addCommand(['output', `わられる数 ${a} を書いてください。`]);
         this.autoPutDigitsEx(a, 0, origin_iy + 1);
@@ -28,7 +32,7 @@ class AlgoDiv extends AlgoBase {
         // 線を描く
         this.addCommand(['output', `図のように線を描いてください。`]);
         this.addCommand(['drawDivCurve', -a_digits.length - 1, origin_iy + 1]);
-        this.addCommand(['drawLine', -a_digits.length - 0.7, origin_iy + 1, accuracy, origin_iy + 1]);
+        this.addCommand(['drawLine', -a_digits.length - 0.7, origin_iy + 1, Math.max(ix1, 0), origin_iy + 1]);
         this.addCommand(['step']);
         // 除数(B)を配置
         this.addCommand(['output', `左にわる数 ${b} を書いてください。`]);
@@ -62,15 +66,19 @@ class AlgoDiv extends AlgoBase {
             shift = b_fracLen;
         }
         this.addCommand(['drawDigit', 0, origin_iy - 1, '0', true]);
-        this.addCommand(['drawDot', 0, origin_iy - 1]);
         // 左の桁から見ていく
         let iy = origin_iy + 2;
         let foundDot = false; // 小数点を見つけた？フラグ変数
         let foundNonZero = false; // 非ゼロを見つけた？フラグ変数
-        for (let i = -a_digits.length; i < Math.max(accuracy - shift, a_fracLen - shift); ++i) {
-            if (foundDot && foundNonZero) { // 小数点も非ゼロも見つけた
-            } else if (foundDot && !foundNonZero) { // 非ゼロは見つけてないが、小数点を見つけた
-            } else if (!foundDot && foundNonZero) { // 小数点は見つけてないが、非ゼロを見つけた
+        for (let i = -a_digits.length; i < ix1; ++i) {
+            if (!foundDot && i === fixedDotPos) {
+                if (!foundNonZero) {
+                    this.addCommand(['drawDigit', i - 1, origin_iy, '0']);
+                }
+                this.addCommand(['drawDot', fixedDotPos, origin_iy]);
+                foundDot = true;
+            }
+            if (foundNonZero) { // 非ゼロを見つけた
                 let digit = this.mapDigit(i, origin_iy + 1);
                 this.addCommand(['output', `わられる数から ${digit} を下ろします。`]);
                 this.addCommand(['drawDigit', i, iy, digit]);
@@ -100,13 +108,13 @@ class AlgoDiv extends AlgoBase {
                 this.autoDigitMul(b_digits, count.toString(), i, iy);
 
                 this.addCommand(['output', `引き算の線を描きます。`]);
-                this.addCommand(['drawLine', i - 1, iy + 1, accuracy, iy + 1]);
+                this.addCommand(['drawLine', i - 1, iy + 1, Math.max(ix1, 0), iy + 1]);
                 this.addCommand(['step']);
 
                 this.addCommand(['output', `${digits} 引く ${BigInt(b_digits) * count} を計算します。`]);
                 this.autoPutDigitsEx(num1.toString(), i + 1, iy + 1);
                 ++iy;
-            } else if (!foundDot && !foundNonZero) { // 小数点も非ゼロも見つけてない
+            } else if (!foundNonZero) { // 非ゼロを見つけてない
                 let digits = '';
                 for (let k = -a_digits.length; k <= i; ++k) {
                     digits += this.mapDigit(k, origin_iy + 1);
@@ -132,7 +140,7 @@ class AlgoDiv extends AlgoBase {
                 this.autoDigitMul(b_digits, count.toString(), i, iy);
 
                 this.addCommand(['output', `引き算の線を描きます。`]);
-                this.addCommand(['drawLine', i - 1, iy + 1, accuracy, iy + 1]);
+                this.addCommand(['drawLine', i - 1, iy + 1, Math.max(ix1, 0), iy + 1]);
                 this.addCommand(['step']);
 
                 this.addCommand(['output', `${digits} 引く ${BigInt(b_digits) * count} を計算します。`]);
