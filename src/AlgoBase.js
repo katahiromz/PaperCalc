@@ -145,6 +145,14 @@ class AlgoBase {
     addCommand(command) {
         if (!this.commands)
             this.commands = [];
+        switch (command[0]) {
+        case 'drawDigit':
+            console.assert(validateImageChar(command[3]));
+            break;
+        case 'drawCenterText':
+            console.assert(validateImageChar(command[2]));
+            break;
+        }
         this.commands.push(command);
     }
     // コマンドの構築

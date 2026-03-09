@@ -15,6 +15,7 @@ interface DigitEntry {
   src: string;
 }
 
+// 文字と画像の対応表
 const digitInfo: { [key: string]: DigitEntry } = {
   '0': { img: null, src: 'img/0.svg' },
   '1': { img: null, src: 'img/1.svg' },
@@ -69,6 +70,11 @@ function loadImage(key: string): Promise<void> {
     img.src = digitInfo[key].src;
     digitInfo[key].img = img;
   });
+}
+
+// digitInfoに当てはまるかどうか、文字列を検査する
+function validateImageChar(str: string): boolean {
+  return str.match(/^[\d\+\-×÷=\/\\\(\)\.…]*$/i) !== null;
 }
 
 const replaceJapaneseNumericChars = (numStr: string): string => {
