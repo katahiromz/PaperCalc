@@ -108,7 +108,7 @@ class AlgoDiv extends AlgoBase {
                 this.autoDigitMul(b_digits, count.toString(), i, iy);
 
                 this.addCommand(['output', `引き算の線を描きます。`]);
-                this.addCommand(['drawLine', i - 1, iy + 1, Math.max(ix1, 0), iy + 1]);
+                this.addCommand(['drawLine', this.min_x(iy), iy + 1, Math.max(ix1, 0), iy + 1]);
                 this.addCommand(['step']);
 
                 this.addCommand(['output', `${digits} 引く ${BigInt(b_digits) * count} を計算します。`]);
@@ -140,7 +140,7 @@ class AlgoDiv extends AlgoBase {
                 this.autoDigitMul(b_digits, count.toString(), i, iy);
 
                 this.addCommand(['output', `引き算の線を描きます。`]);
-                this.addCommand(['drawLine', i - 1, iy + 1, Math.max(ix1, 0), iy + 1]);
+                this.addCommand(['drawLine', this.min_x(iy), iy + 1, Math.max(ix1, 0), iy + 1]);
                 this.addCommand(['step']);
 
                 this.addCommand(['output', `${digits} 引く ${BigInt(b_digits) * count} を計算します。`]);
