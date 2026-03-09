@@ -59,6 +59,7 @@ class AlgoDiv extends AlgoBase {
                 // ゼロを追加
                 for (let i = 0; i < (b_fracLen - a_fracLen); ++i) {
                     this.addCommand(['drawDigit', i, origin_iy + 1, '0', true]);
+                    this.mapDigit(i, origin_iy + 1, '0');
                 }
                 this.clearMapDot(origin_iy + 1);
             }
@@ -72,8 +73,10 @@ class AlgoDiv extends AlgoBase {
             if (!foundDot && i === fixedDotPos) {
                 if (!foundNonZero) {
                     this.addCommand(['drawDigit', i - 1, origin_iy, '0']);
+                    this.mapDigit(i - 1, origin_iy, '0');
                 }
                 this.addCommand(['drawDot', fixedDotPos, origin_iy]);
+                this.setMapDot(fixedDotPos, origin_iy);
                 foundDot = true;
             }
 
@@ -175,8 +178,8 @@ class AlgoDiv extends AlgoBase {
 
         // 必要ならば余りの行に小数点を打つ
         if (a_fracLen > 0) {
-            this.addCommand(['drawDot', -(a_fracLen + 1), iy]);
-            this.setMapDot(-(a_fracLen + 1), iy);
+            this.addCommand(['drawDot', -a_fracLen, iy]);
+            this.setMapDot(-a_fracLen, iy);
         }
 
         // 答えを求める

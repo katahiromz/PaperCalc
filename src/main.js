@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let errorDisplay = document.getElementById('input-error-message');
     let label_a = document.getElementById('label-a');
     let label_b = document.getElementById('label-b');
+    let version_span = document.getElementById('my-version-span');
     let algorithm = null;
     let op = null;
     let speedInfo = {
@@ -625,6 +626,7 @@ document.addEventListener('DOMContentLoaded', function () {
         stop_button.disabled = true;
         next_step_button.disabled = false;
         reset_button.disabled = false;
+        version_span.innerText = VERSION;
     };
     updateLabels();
     ready();

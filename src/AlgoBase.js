@@ -562,12 +562,12 @@ class AlgoBase {
             this.addCommand(['step']);
         }
     }
-    // 小数点の左に数字がなかった場合、左側にゼロを追加する
+    // 小数点にゼロが足りない場合、ゼロを追加
     addMissingZero(iy, test = false) {
         let iDot = this.getMapDot(iy);
         if (iDot === undefined)
             return false; // 小数点がなければ何もしない
-        let ix0 = this.min_x(iy);
+        let ix0 = this.min_x(iy), ix1 = this.max_x(iy), found = false;
         // min_x が iDot 以上、つまり小数点より左に数字がない場合にゼロを追加
         if (ix0 === undefined || ix0 >= iDot) {
             if (test)
@@ -575,9 +575,20 @@ class AlgoBase {
             let zeroIx = iDot - 1;
             this.addCommand(['drawDigit', zeroIx, iy, '0']);
             this.mapDigit(zeroIx, iy, '0');
-            return true;
+            found = true;
+            ix0 = this.min_x(iy);
         }
-        return false;
+        // 小数点とix1の間に空白があるとき、ゼロで埋める
+        for (let ix = ix0; ix <= ix1; ++ix) {
+            if (this.getMapDigit(ix, iy) === undefined) {
+                if (test)
+                    return true;
+                this.addCommand(['drawDigit', ix, iy, '0']);
+                this.mapDigit(ix, iy, '0');
+                found = true;
+            }
+        }
+        return found;
     }
     // 先行するゼロを修正する
     fixLeadZeros(iy, test = false) {
@@ -677,7 +688,7 @@ class AlgoBase {
     fixAndReadRowNumber(iy, ignoreDot = false, dontFixTrailZeros = false) {
         // 小数点の左側に数字がないとき、ゼロを追加
         if (this.addMissingZero(iy, true)) {
-            this.addCommand(['output', `小数点の左がわに数字がないのでゼロを追加します。`]);
+            this.addCommand(['output', `小数点にゼロが足りないのでゼロを追加します。`]);
             this.addMissingZero(iy, false);
             this.addCommand(['step']);
         }
