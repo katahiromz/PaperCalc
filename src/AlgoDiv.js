@@ -217,37 +217,6 @@ class AlgoDiv extends AlgoBase {
     }
     // 単体テスト
     unitTest() {
-        console.assert(this.testEntryEx('612', '3', '204'));
-        console.assert(this.testEntryEx('100', '5', '20'));
-        console.assert(this.testEntryEx('100', '20', '5'));
-        console.assert(this.testEntryEx('100', '25', '4'));
-        console.assert(this.testEntryEx('100', '4', '25'));
-        console.assert(this.testEntryEx('10', '0.5', '20'));
-        console.assert(this.testEntryEx('10', '2', '5'));
-        console.assert(this.testEntryEx('10', '2.5', '4'));
-        console.assert(this.testEntryEx('10', '0.4', '25'));
-        //console.assert(this.testEntryEx('10', '40', '0 … 10'));
-        //console.assert(this.testEntryEx('10', '40', '0.25', '2'));
-        //console.assert(this.testEntryEx('10', '40', '0.250', '3'));
-        //console.assert(this.testEntryEx('10', '40', '0.2 … 2', '1'));
-        //console.assert(this.testEntryEx('0.1', '0.4', '0.2 … 0.02', '1'));
-        //console.assert(this.testEntryEx('0.1', '2', '0.0500', '4'));
-        //console.assert(this.testEntryEx('999', '0.1', '9990', '0'));
-        //console.assert(this.testEntryEx('999', '0.1', '9990.00', '2'));
-        //console.assert(this.testEntryEx('99999999999999999999', '99999999999999999999', '1.0', '1'));
-        //console.assert(this.testEntryEx('99.9', '990', '0 … 99.9', '0'));
-        //console.assert(this.testEntryEx('123.55', '789', '0.1 … 44.65', '1'));
-        //console.assert(this.testEntryEx('12.345', '1', '12.34 … 0.005', '2'));
-        //console.assert(this.testEntryEx('12.355', '789', '0.0 … 12.355', '1'));
-        //console.assert(this.testEntryEx('12.355', '78', '0.1 … 4.555', '1'));
-        //console.assert(this.testEntryEx('12.355', '7', '1.7 … 0.455', '1'));
-        //console.assert(this.testEntryEx('12345', '67', '184.25 … 0.25', '2'));
-        //console.assert(this.testEntryEx('7.955', '7.89', '1.00 … 0.065', '2'));
-        //console.assert(this.testEntryEx('0.3', '0.25', '1 … 0.05'));
-        //console.assert(this.testEntryEx('1.3', '0.25', '5 … 0.05'));
-        //console.assert(this.testEntryEx('0.01', '0.1', '0 … 0.01'));
-        //console.assert(this.testEntryEx('0.25', '0.3', '0 … 0.25'));
-        //console.assert(this.testEntryEx('1', '0.3', '3.3 … 0.01', '1'));
         // 【ちびむすより引用】ここから
         console.assert(this.testEntryEx('63', '2', '31 … 1'));
         console.assert(this.testEntryEx('88', '4', '22'));
@@ -284,6 +253,109 @@ class AlgoDiv extends AlgoBase {
         console.assert(this.testEntryEx('163', '26', '6 … 7'));
         console.assert(this.testEntryEx('380', '85', '4 … 40'));
         // 【ちびむすより引用】ここまで
+        // 【ちびむすより引用】ここから
+        console.assert(this.testEntryEx('2.4', '4.8', '0.5', '1'));
+        console.assert(this.testEntryEx('5.16', '8.6', '0.6', '1'));
+        console.assert(this.testEntryEx('3.4', '8.5', '0.4', '1'));
+        console.assert(this.testEntryEx('1.29', '4.3', '0.3', '1'));
+        console.assert(this.testEntryEx('6.2', '15.5', '0.4', '1'));
+        console.assert(this.testEntryEx('8.33', '9.8', '0.85', '2'));
+        console.assert(this.testEntryEx('8.6', '21.5', '0.4', '1'));
+        console.assert(this.testEntryEx('2.87', '8.2', '0.35', '2'));
+        console.assert(this.testEntryEx('0.26', '6.5', '0.04', '2'));
+        console.assert(this.testEntryEx('2.52', '5.6', '0.45', '2'));
+        console.assert(this.testEntryEx('0.21', '4.2', '0.05', '2'));
+        console.assert(this.testEntryEx('2.07', '4.6', '0.45', '2'));
+        console.assert(this.testEntryEx('0.26', '5.2', '0.05', '2'));
+        console.assert(this.testEntryEx('0.14', '0.4', '0.35', '2'));
+        console.assert(this.testEntryEx('0.23', '4.6', '0.05', '2'));
+        console.assert(this.testEntryEx('0.28', '0.8', '0.35', '2'));
+        // 【ちびむすより引用】ここまで
+        // 【ちびむすより引用】ここから
+        console.assert(this.testEntryEx('3.2', '0.5', '6 … 0.2'));
+        console.assert(this.testEntryEx('3.6', '1.5', '2 … 0.6'));
+        console.assert(this.testEntryEx('3.9', '0.6', '6 … 0.3'));
+        console.assert(this.testEntryEx('5.5', '2.5', '2 … 0.5'));
+        console.assert(this.testEntryEx('5.4', '4.5', '1 … 0.9'));
+        console.assert(this.testEntryEx('2.8', '0.8', '3 … 0.4'));
+        console.assert(this.testEntryEx('6.3', '1.5', '4 … 0.3'));
+        console.assert(this.testEntryEx('5.6', '1.6', '3 … 0.8'));
+        console.assert(this.testEntryEx('39.6', '12.3', '3 … 2.7'));
+        console.assert(this.testEntryEx('38.6', '31.5', '1 … 7.1'));
+        console.assert(this.testEntryEx('73.4', '35.6', '2 … 2.2'));
+        console.assert(this.testEntryEx('63.4', '15.2', '4 … 2.6'));
+        console.assert(this.testEntryEx('63.5', '14.2', '4 … 6.7'));
+        console.assert(this.testEntryEx('83.5', '41.2', '2 … 1.1'));
+        console.assert(this.testEntryEx('64.7', '15.2', '4 … 3.9'));
+        console.assert(this.testEntryEx('45.3', '12.3', '3 … 8.4'));
+        // 【ちびむすより引用】ここまで
+        // 【ちびむすより引用】ここから
+        console.assert(this.testEntryEx('3.9', '1.9', '2 … 0.1'));
+        console.assert(this.testEntryEx('7.6', '2.3', '3 … 0.7'));
+        console.assert(this.testEntryEx('2.9', '0.4', '7 … 0.1'));
+        console.assert(this.testEntryEx('2.7', '1.1', '2 … 0.5'));
+        console.assert(this.testEntryEx('7.6', '0.9', '8 … 0.4'));
+        console.assert(this.testEntryEx('3.5', '1.4', '2 … 0.7'));
+        console.assert(this.testEntryEx('5.8', '0.7', '8 … 0.2'));
+        console.assert(this.testEntryEx('6.1', '5.3', '1 … 0.8'));
+        console.assert(this.testEntryEx('62.8', '18.9', '3 … 6.1'));
+        console.assert(this.testEntryEx('67.3', '19.4', '3 … 9.1'));
+        console.assert(this.testEntryEx('38.6', '11.7', '3 … 3.5'));
+        console.assert(this.testEntryEx('46.8', '18.6', '2 … 9.6'));
+        console.assert(this.testEntryEx('62.4', '19.3', '3 … 4.5'));
+        console.assert(this.testEntryEx('82.5', '11.6', '7 … 1.3'));
+        console.assert(this.testEntryEx('46.7', '12.3', '3 … 9.8'));
+        console.assert(this.testEntryEx('67.2', '16.5', '4 … 1.2'));
+        // 【ちびむすより引用】ここまで
+        // 【ちびむすより引用】ここから
+        console.assert(this.testEntryEx('3.64', '1.4', '2.6', '1'));
+        console.assert(this.testEntryEx('3.22', '2.3', '1.4', '1'));
+        console.assert(this.testEntryEx('8.82', '4.2', '2.1', '1'));
+        console.assert(this.testEntryEx('3.72', '3.1', '1.2', '1'));
+        console.assert(this.testEntryEx('1.44', '0.6', '2.4', '1'));
+        console.assert(this.testEntryEx('5.76', '1.8', '3.2', '1'));
+        console.assert(this.testEntryEx('2.88', '0.8', '3.6', '1'));
+        console.assert(this.testEntryEx('3.22', '2.3', '1.4', '1'));
+        console.assert(this.testEntryEx('3.68', '1.6', '2.3', '1'));
+        console.assert(this.testEntryEx('7.26', '3.3', '2.2', '1'));
+        console.assert(this.testEntryEx('1.68', '0.7', '2.4', '1'));
+        console.assert(this.testEntryEx('2.88', '0.9', '3.2', '1'));
+        console.assert(this.testEntryEx('3.15', '1.5', '2.1', '1'));
+        console.assert(this.testEntryEx('7.68', '2.4', '3.2', '1'));
+        console.assert(this.testEntryEx('1.92', '0.8', '2.4', '1'));
+        console.assert(this.testEntryEx('1.77', '0.3', '5.9', '1'));
+        // 【ちびむすより引用】ここまで
+        console.assert(this.testEntryEx('612', '3', '204'));
+        console.assert(this.testEntryEx('100', '5', '20'));
+        console.assert(this.testEntryEx('100', '20', '5'));
+        console.assert(this.testEntryEx('100', '25', '4'));
+        console.assert(this.testEntryEx('100', '4', '25'));
+        console.assert(this.testEntryEx('10', '0.5', '20'));
+        console.assert(this.testEntryEx('10', '2', '5'));
+        console.assert(this.testEntryEx('10', '2.5', '4'));
+        console.assert(this.testEntryEx('10', '0.4', '25'));
+        //console.assert(this.testEntryEx('10', '40', '0 … 10'));
+        //console.assert(this.testEntryEx('10', '40', '0.25', '2'));
+        //console.assert(this.testEntryEx('10', '40', '0.250', '3'));
+        //console.assert(this.testEntryEx('10', '40', '0.2 … 2', '1'));
+        //console.assert(this.testEntryEx('0.1', '0.4', '0.2 … 0.02', '1'));
+        //console.assert(this.testEntryEx('0.1', '2', '0.0500', '4'));
+        //console.assert(this.testEntryEx('999', '0.1', '9990', '0'));
+        //console.assert(this.testEntryEx('999', '0.1', '9990.00', '2'));
+        //console.assert(this.testEntryEx('99999999999999999999', '99999999999999999999', '1.0', '1'));
+        //console.assert(this.testEntryEx('99.9', '990', '0 … 99.9', '0'));
+        //console.assert(this.testEntryEx('123.55', '789', '0.1 … 44.65', '1'));
+        //console.assert(this.testEntryEx('12.345', '1', '12.34 … 0.005', '2'));
+        //console.assert(this.testEntryEx('12.355', '789', '0.0 … 12.355', '1'));
+        //console.assert(this.testEntryEx('12.355', '78', '0.1 … 4.555', '1'));
+        //console.assert(this.testEntryEx('12.355', '7', '1.7 … 0.455', '1'));
+        //console.assert(this.testEntryEx('12345', '67', '184.25 … 0.25', '2'));
+        //console.assert(this.testEntryEx('7.955', '7.89', '1.00 … 0.065', '2'));
+        //console.assert(this.testEntryEx('0.3', '0.25', '1 … 0.05'));
+        //console.assert(this.testEntryEx('1.3', '0.25', '5 … 0.05'));
+        //console.assert(this.testEntryEx('0.01', '0.1', '0 … 0.01'));
+        //console.assert(this.testEntryEx('0.25', '0.3', '0 … 0.25'));
+        //console.assert(this.testEntryEx('1', '0.3', '3.3 … 0.01', '1'));
         this.reset();
     }
 }
