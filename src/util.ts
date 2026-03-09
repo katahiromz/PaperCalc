@@ -74,7 +74,7 @@ function loadImage(key: string): Promise<void> {
 
 // digitInfoに当てはまるかどうか、文字列を検査する
 function validateImageChar(str: string): boolean {
-  return str.match(/^[\d\+\-×÷=\/\\\(\)\.…]*$/i) !== null;
+  return str.match(/^[\d\+\-×÷=\/\\\(\)\.… ]*$/i) !== null;
 }
 
 const replaceJapaneseNumericChars = (numStr: string): string => {

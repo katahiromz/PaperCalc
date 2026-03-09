@@ -141,17 +141,25 @@ class AlgoBase {
             this.timerId = null;
         }
     }
+    // コマンドの検査
+    checkCommand(command) {
+        switch (command[0]) {
+        case 'drawDigit':
+            return (command[3].length == 1 && validateImageChar(command[3]));
+            break;
+        case 'drawCenterText':
+            return (validateImageChar(command[2]));
+            break;
+        }
+        return true;
+    }
     // コマンドの追加
     addCommand(command) {
         if (!this.commands)
             this.commands = [];
-        switch (command[0]) {
-        case 'drawDigit':
-            console.assert(validateImageChar(command[3]));
-            break;
-        case 'drawCenterText':
-            console.assert(validateImageChar(command[2]));
-            break;
+        if (!this.checkCommand(command)) {
+            console.log(command);
+            console.assert(false);
         }
         this.commands.push(command);
     }
@@ -166,45 +174,49 @@ class AlgoBase {
         Paper.g_sizingOnly = false;
     }
     // コマンドの実行
-    executeCommand(op) {
-        switch (op[0]) {
+    executeCommand(cmd) {
+        if (!this.checkCommand(cmd)) {
+            console.log(cmd);
+            console.assert(false);
+        }
+        switch (cmd[0]) {
             case 'output':
-                this.output(op[1]);
+                this.output(cmd[1]);
                 break;
             case 'drawDigit':
-                this.drawDigit(...op.slice(1));
+                this.drawDigit(...cmd.slice(1));
                 break;
             case 'drawCenterText':
-                this.drawCenterText(...op.slice(1));
+                this.drawCenterText(...cmd.slice(1));
                 break;
             case 'drawDivCurve':
-                this.drawDivCurve(...op.slice(1));
+                this.drawDivCurve(...cmd.slice(1));
                 break;
             case 'backslashDigit':
-                this.backslashDigit(...op.slice(1));
+                this.backslashDigit(...cmd.slice(1));
                 break;
             case 'drawCarry':
-                this.drawCarry(...op.slice(1));
+                this.drawCarry(...cmd.slice(1));
                 break;
             case 'drawSmallChars':
-                this.drawSmallChars(...op.slice(1));
+                this.drawSmallChars(...cmd.slice(1));
                 break;
             case 'drawLine':
-                this.drawLine(...op.slice(1));
+                this.drawLine(...cmd.slice(1));
                 break;
             case 'drawStrike':
-                this.drawStrike(...op.slice(1));
+                this.drawStrike(...cmd.slice(1));
                 break;
             case 'drawDot':
-                this.drawDot(...op.slice(1));
+                this.drawDot(...cmd.slice(1));
                 break;
             case 'slashDot':
-                this.slashDot(...op.slice(1));
+                this.slashDot(...cmd.slice(1));
                 break;
             case 'step':
                 break;
             default:
-                console.log("Unknown command:", op[0]);
+                console.log("Unknown command:", cmd[0]);
                 console.assert(false);
                 return false;
         }
