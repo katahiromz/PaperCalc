@@ -176,15 +176,25 @@ class AlgoDiv extends AlgoBase {
             }
         }
 
+        // 数が立てられなかったときにゼロを追加
+        if (!foundDot && !foundNonZero) {
+            this.addCommand(['drawDigit', fixedDotPos - 1, origin_iy, '0']);
+            this.mapDigit(fixedDotPos - 1, origin_iy, '0');
+        }
         // 必要ならば余りの行に小数点を打つ
-        if (a_fracLen > 0) {
+        else if (a_fracLen > 0) {
             this.addCommand(['drawDot', -a_fracLen, iy]);
             this.setMapDot(-a_fracLen, iy);
         }
 
         // 答えを求める
         let shou = this.fixAndReadRowNumber(origin_iy, false, true); // 商
-        let amari = this.fixAndReadRowNumber(iy); // 余り
+        let amari;
+        if (!foundDot && !foundNonZero) {
+            amari = a; // 余り
+        } else {
+            amari = this.fixAndReadRowNumber(iy); // 余り
+        }
         if (comparePositiveNumbers(amari, '0') == 0) { // 余りがゼロの場合
             this.addCommand(['output', `商は ${shou} です。あまりはありません。`]);
             this.answer = shou;
