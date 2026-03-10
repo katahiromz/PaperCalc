@@ -688,7 +688,7 @@ class AlgoBase {
     fixAndReadRowNumber(iy, ignoreDot = false, dontFixTrailZeros = false) {
         // 小数点の左側に数字がないとき、ゼロを追加
         if (this.addMissingZero(iy, true)) {
-            this.addCommand(['output', `小数点にゼロが足りないのでゼロを追加します。`]);
+            this.addCommand(['output', `小数点の位置にゼロが足りないのでゼロを追加します。`]);
             this.addMissingZero(iy, false);
             this.addCommand(['step']);
         }

@@ -209,7 +209,10 @@ class AlgoDiv extends AlgoBase {
         }
         // 必要ならば余りの行に小数点を打つ
         else if (a_fracLen > 0 || accuracy > 0) {
-            this.addCommand(['output', `前の小数点の位置で、あまりに小数点を打ちます。`]);
+            if (b_fracLen > 0)
+                this.addCommand(['output', `前の小数点の位置で、あまりに小数点を打ちます。`]);
+            else
+                this.addCommand(['output', `あまりに小数点を打ちます。`]);
             this.addCommand(['drawDot', -a_fracLen, iy]);
             this.setMapDot(-a_fracLen, iy);
             this.addCommand(['step']);
@@ -249,11 +252,11 @@ class AlgoDiv extends AlgoBase {
             amari = this.fixAndReadRowNumber(iy); // 余り
         }
         if (comparePositiveNumbers(amari, '0') == 0) { // 余りがゼロの場合
-            this.addCommand(['output', `あまりはありません。`]);
+            this.addCommand(['output', `商は ${shou}です。あまりはありません。`]);
             this.addCommand(['output', `こたえ: ${shou}`]);
             this.answer = shou;
         } else {
-            this.addCommand(['output', `あまりは ${amari} です。`]);
+            this.addCommand(['output', `商は ${shou}、あまりは ${amari} です。`]);
             this.addCommand(['output', `こたえ: ${shou} … ${amari}`]);
             this.answer = `${shou} … ${amari}`;
         }
