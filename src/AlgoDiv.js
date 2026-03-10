@@ -143,8 +143,9 @@ class AlgoDiv extends AlgoBase {
                     this.addCommand(['drawLine', ix0, iy, Math.max(ix1, 0), iy]);
                 this.addCommand(['step']);
 
-                this.addCommand(['output', `${digits} 引く ${BigInt(b_digits) * count} を計算します。`]);
+                this.addCommand(['output', `${digits} - ${BigInt(b_digits) * count} = ${num1.toString()}`]);
                 this.autoPutDigitsEx(num1.toString(), i + 1, iy);
+                this.addCommand(['step']);
             } else { // 非ゼロを見つけてない
                 // 行(origin_iy + 1)から数を読み込む
                 let digits = '';
@@ -195,8 +196,9 @@ class AlgoDiv extends AlgoBase {
                 this.addCommand(['step']);
 
                 // 引き算を計算する
-                this.addCommand(['output', `${digits} 引く ${BigInt(b_digits) * count} を計算します。`]);
+                this.addCommand(['output', `${digits} - ${BigInt(b_digits) * count} = ${num1.toString()}`]);
                 this.autoPutDigitsEx(num1.toString(), i + 1, iy);
+                this.addCommand(['step']);
             }
         }
 
