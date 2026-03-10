@@ -746,11 +746,12 @@ class AlgoBase {
         this.paper.drawImage(img, x0, y0);
     }
     // テキストを描画(左右中央そろえ)
-    drawCenterText(y, text, is_red = false) {
+    drawCenterText(iy, text, is_red = false) {
         let prefix = (is_red ? 'red-' : '');
         let cx = this.paper.cx;
         let textWidth = this.getTextWidth(text);
         let x = this.paper.originX + (cx - textWidth) / 2;
+        let { x0, y } = this.convert3(0, iy);
         for (let ich = 0; ich < text.length; ++ich) {
             let digit = text[ich];
             if (digit !== ' ') {

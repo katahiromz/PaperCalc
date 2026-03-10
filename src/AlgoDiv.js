@@ -44,12 +44,10 @@ class AlgoDiv extends AlgoBase {
             // わる数の小数点を消す
             this.addCommand(['slashDot', -(a_digits.length + b_fracLen + 1), origin_iy + 1]);
             // わられる数の小数点を消す。わられる数に小数点がなかった場合は、小数点の位置を強調するために小数点を書いてから消すようにする
-            if (a_fracLen == 0) {
+            if (a_fracLen == 0)
                 this.addCommand(['drawDot', -a_fracLen, origin_iy + 1]);
-            }
-            if (a_fracLen >= 0) {
+            if (a_fracLen >= 0)
                 this.addCommand(['slashDot', -a_fracLen, origin_iy + 1]);
-            }
             // 小数点以下の桁数により場合分け
             if (a_fracLen > b_fracLen) {
                 // 小数点の位置をずらす
@@ -74,6 +72,7 @@ class AlgoDiv extends AlgoBase {
                 ++ix;
                 b_digits = b_digits.replace(/^0/, ''); // ついでに b_digitsも修正
             }
+            this.addCommand(['step']);
         }
         // 左の桁から見ていく
         let iy = origin_iy + 2;
@@ -81,14 +80,20 @@ class AlgoDiv extends AlgoBase {
         let tateta = false; // 立てた？フラグ変数
         for (let i = -a_digits.length; i < ix1; ++i) {
             // 小数点を確認
-            if (!foundDot && i === fixedDotPos) {
+            if (!foundDot && i === fixedDotPos) { // 小数点を見つけた？
+                // 小数点の前のゼロを書く
                 if (!tateta) {
+                    this.addCommand(['output', `小数点があったので、ゼロと小数点を書きます。`]);
                     this.addCommand(['drawDigit', i - 1, origin_iy, '0']);
                     this.mapDigit(i - 1, origin_iy, '0');
+                } else {
+                    this.addCommand(['output', `小数点があったので、同じ位置に小数点を書きます。`]);
                 }
+                // 小数点を書く
                 this.addCommand(['drawDot', fixedDotPos, origin_iy]);
                 this.setMapDot(fixedDotPos, origin_iy);
-                foundDot = true;
+                this.addCommand(['step']);
+                foundDot = true; // 覚えておく
             }
 
             if (tateta) { // 立てた？
@@ -97,21 +102,22 @@ class AlgoDiv extends AlgoBase {
                 this.addCommand(['output', `わられる数から ${digit} を下ろします。`]);
                 this.addCommand(['drawDigit', i, iy, digit]);
                 this.mapDigit(i, iy, digit);
+                this.addCommand(['step']);
 
-                // iyから数を読み込む
+                // 行iyから数を読み込む
                 let digits = this.readRowNumber(iy, true);
                 console.log(digit, digits);
                 if (comparePositiveNumbers(digits, b_digits) < 0) {
                     this.addCommand(['output', `${digits} は ${b_digits} より小さいので 0 を立てます。`]);
                     this.addCommand(['drawDigit', i, origin_iy, '0']);
                     this.mapDigit(i, origin_iy, '0');
+                    this.addCommand(['step']);
                     continue;
                 }
                 ++iy;
 
                 // 立てる数を求める
-                let num1 = BigInt(digits);
-                let num2 = BigInt(b_digits);
+                let num1 = BigInt(digits), num2 = BigInt(b_digits);
                 let count = BigInt(0);
                 while (num1 >= num2) {
                     num1 -= num2;
@@ -132,14 +138,16 @@ class AlgoDiv extends AlgoBase {
                 let ix0 = this.min_x(iy);
                 ++iy;
                 this.addCommand(['output', `引き算の線を描きます。`]);
-                this.addCommand(['drawLine', ix0, iy, Math.max(ix1, 0), iy]);
+                if (Math.abs(ix0, Math.max(ix1, 0)) == 1)
+                    this.addCommand(['drawLine', ix0 - 1, iy, Math.max(ix1, 0), iy]);
+                else
+                    this.addCommand(['drawLine', ix0, iy, Math.max(ix1, 0), iy]);
                 this.addCommand(['step']);
 
                 this.addCommand(['output', `${digits} 引く ${BigInt(b_digits) * count} を計算します。`]);
-                if (num1.toString() !== '0')
-                    this.autoPutDigitsEx(num1.toString(), i + 1, iy);
+                this.autoPutDigitsEx(num1.toString(), i + 1, iy);
             } else { // 非ゼロを見つけてない
-                // (origin_iy + 1)から数を読み込む
+                // 行(origin_iy + 1)から数を読み込む
                 let digits = '';
                 for (let k = -a_digits.length; k <= i; ++k) {
                     digits += this.mapDigit(k, origin_iy + 1);
@@ -158,8 +166,7 @@ class AlgoDiv extends AlgoBase {
                 }
 
                 // 立てる数を求める
-                let num1 = BigInt(digits);
-                let num2 = BigInt(b_digits);
+                let num1 = BigInt(digits), num2 = BigInt(b_digits);
                 let count = BigInt(0);
                 while (num1 >= num2) {
                     num1 -= num2;
@@ -171,7 +178,7 @@ class AlgoDiv extends AlgoBase {
                 this.addCommand(['drawDigit', i, origin_iy, count.toString()]);
                 this.mapDigit(i, origin_iy, count.toString());
                 this.addCommand(['step']);
-                tateta = true; // 立てた？
+                tateta = true; // 立てた
 
                 // 掛け算を計算する
                 this.addCommand(['output', `${b_digits} × ${count} を計算します。`]);
@@ -181,30 +188,37 @@ class AlgoDiv extends AlgoBase {
                 let ix0 = this.min_x(iy);
                 ++iy;
                 this.addCommand(['output', `引き算の線を描きます。`]);
-                this.addCommand(['drawLine', ix0, iy, Math.max(ix1, 0), iy]);
+                if (Math.abs(ix0, Math.max(ix1, 0)) == 1)
+                    this.addCommand(['drawLine', ix0 - 1, iy, Math.max(ix1, 0), iy]);
+                else
+                    this.addCommand(['drawLine', ix0, iy, Math.max(ix1, 0), iy]);
                 this.addCommand(['step']);
 
                 // 引き算を計算する
                 this.addCommand(['output', `${digits} 引く ${BigInt(b_digits) * count} を計算します。`]);
-                if (num1.toString() !== '0')
-                    this.autoPutDigitsEx(num1.toString(), i + 1, iy);
+                this.autoPutDigitsEx(num1.toString(), i + 1, iy);
             }
         }
 
         // 数が立てられなかったときにゼロを追加
         if (!tateta) {
+            this.addCommand(['output', `数を立てられなかったので、ゼロを立てます。`]);
             this.addCommand(['drawDigit', fixedDotPos - 1, origin_iy, '0']);
             this.mapDigit(fixedDotPos - 1, origin_iy, '0');
+            this.addCommand(['step']);
         }
         // 必要ならば余りの行に小数点を打つ
         else if (a_fracLen > 0 || accuracy > 0) {
+            this.addCommand(['output', `前の小数点の位置で、あまりに小数点を打ちます。`]);
             this.addCommand(['drawDot', -a_fracLen, iy]);
             this.setMapDot(-a_fracLen, iy);
+            this.addCommand(['step']);
         }
 
         // 計算打ち切り後、被除数(origin_iy+1)にまだ下ろしていない桁が残っていれば
         // 余りの行(iy)に全て追記する（ix1はループ未処理の先頭）
         if (tateta && ix1 < 0) {
+            this.addCommand(['output', `計算を打ち切ったので、あまりを全部下ろします。`]);
             let appended = false;
             for (let i = ix1; i < 0; ++i) {
                 // getMapDigit で実際にマップに存在する桁のみ取得
@@ -223,6 +237,7 @@ class AlgoDiv extends AlgoBase {
                 this.addCommand(['drawDot', -a_fracLen, iy]);
                 this.setMapDot(-a_fracLen, iy);
             }
+            this.addCommand(['step']);
         }
 
         // 答えを求める
@@ -234,16 +249,17 @@ class AlgoDiv extends AlgoBase {
             amari = this.fixAndReadRowNumber(iy); // 余り
         }
         if (comparePositiveNumbers(amari, '0') == 0) { // 余りがゼロの場合
-            this.addCommand(['output', `商は ${shou} です。あまりはありません。`]);
+            this.addCommand(['output', `あまりはありません。`]);
+            this.addCommand(['output', `こたえ: ${shou}`]);
             this.answer = shou;
         } else {
-            this.addCommand(['output', `商は ${shou}、あまりは ${amari} です。`]);
+            this.addCommand(['output', `あまりは ${amari} です。`]);
+            this.addCommand(['output', `こたえ: ${shou} … ${amari}`]);
             this.answer = `${shou} … ${amari}`;
         }
 
         // 答えを表示する
-        let { x, y } = this.convert3(0, iy + 2);
-        this.addCommand(['drawCenterText', y, `${a} ÷ ${b} = ${this.answer}`]);
+        this.addCommand(['drawCenterText', iy + 2, `${a} ÷ ${b} = ${this.answer}`]);
         return this.answer;
     }
     // コマンドの構築

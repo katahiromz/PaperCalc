@@ -57,8 +57,7 @@ class AlgoSub extends AlgoBase {
         let answer = this.fixAndReadRowNumber(origin_iy + 2);
         {
             const text = `${a} - ${b} = ${answer}`;
-            let { x, y } = this.convert3(0, origin_iy + 4);
-            this.addCommand(['drawCenterText', y, text]);
+            this.addCommand(['drawCenterText', origin_iy + 4, text]);
         }
         this.answer = answer;
         this.addCommand(['output', `こたえ: ${answer}`]);

@@ -81,8 +81,7 @@ class AlgoMul extends AlgoBase {
         let answer = this.fixAndReadRowNumber(answer_iy);
         {
             const text = `${a} × ${b} = ${answer}`;
-            let { x, y } = this.convert3(0, answer_iy + 2);
-            this.addCommand(['drawCenterText', y, text]);
+            this.addCommand(['drawCenterText', answer_iy + 2, text]);
         }
         this.answer = answer;
         this.addCommand(['output', `こたえ: ${this.answer}`]);
