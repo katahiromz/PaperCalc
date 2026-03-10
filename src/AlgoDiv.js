@@ -210,7 +210,7 @@ class AlgoDiv extends AlgoBase {
             this.addCommand(['step']);
         }
         // 必要ならば余りの行に小数点を打つ
-        else if (a_fracLen > 0 || accuracy > 0) {
+        else if (a_fracLen > 0 || b_fracLen > 0 || accuracy > 0) {
             if (b_fracLen > 0)
                 this.addCommand(['output', `前の小数点の位置で、あまりに小数点を打ちます。`]);
             else
@@ -413,6 +413,7 @@ class AlgoDiv extends AlgoBase {
         console.assert(this.testEntryEx('1.92', '0.8', '2.4', '1'));
         console.assert(this.testEntryEx('1.77', '0.3', '5.9', '1'));
         // 【ちびむすより引用】ここまで
+        console.assert(this.testEntryEx('0', '1', '0'));
         console.assert(this.testEntryEx('1', '1', '1'));
         console.assert(this.testEntryEx('999', '999', '1'));
         console.assert(this.testEntryEx('612', '3', '204'));
@@ -446,6 +447,7 @@ class AlgoDiv extends AlgoBase {
         console.assert(this.testEntryEx('12.345', '1', '12.34 … 0.005', '2'));
         console.assert(this.testEntryEx('12.355', '78', '0.1 … 4.555', '1'));
         console.assert(this.testEntryEx('12.355', '7', '1.7 … 0.455', '1'));
+        console.assert(this.testEntryEx('100', '20.1', '4 … 19.6'));
         this.reset();
     }
 }
