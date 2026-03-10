@@ -197,7 +197,7 @@ class AlgoDiv extends AlgoBase {
             this.mapDigit(fixedDotPos - 1, origin_iy, '0');
         }
         // 必要ならば余りの行に小数点を打つ
-        else if (a_fracLen > 0) {
+        else if (a_fracLen > 0 || accuracy > 0) {
             this.addCommand(['drawDot', -a_fracLen, iy]);
             this.setMapDot(-a_fracLen, iy);
         }
@@ -395,13 +395,13 @@ class AlgoDiv extends AlgoBase {
         console.assert(this.testEntryEx('1.3', '0.25', '5 … 0.05'));
         console.assert(this.testEntryEx('0.01', '0.1', '0 … 0.01'));
         console.assert(this.testEntryEx('0.25', '0.3', '0 … 0.25'));
-        //console.assert(this.testEntryEx('10', '40', '0.2 … 2', '1'));
-        //console.assert(this.testEntryEx('123.55', '789', '0.1 … 44.65', '1'));
-        //console.assert(this.testEntryEx('12.345', '1', '12.34 … 0.005', '2'));
-        //console.assert(this.testEntryEx('12.355', '78', '0.1 … 4.555', '1'));
-        //console.assert(this.testEntryEx('12.355', '7', '1.7 … 0.455', '1'));
-        //console.assert(this.testEntryEx('12345', '67', '184.25 … 0.25', '2'));
-        //console.assert(this.testEntryEx('1', '0.3', '3.3 … 0.01', '1'));
+        console.assert(this.testEntryEx('10', '40', '0.2 … 2', '1'));
+        console.assert(this.testEntryEx('12345', '67', '184.25 … 0.25', '2'));
+        console.assert(this.testEntryEx('1', '0.3', '3.3 … 0.01', '1'));
+        console.assert(this.testEntryEx('123.55', '789', '0.1 … 44.65', '1')); // FIXME
+        console.assert(this.testEntryEx('12.345', '1', '12.34 … 0.005', '2')); // FIXME
+        console.assert(this.testEntryEx('12.355', '78', '0.1 … 4.555', '1')); // FIXME
+        console.assert(this.testEntryEx('12.355', '7', '1.7 … 0.455', '1')); // FIXME
         this.reset();
     }
 }
