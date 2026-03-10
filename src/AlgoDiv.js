@@ -202,6 +202,29 @@ class AlgoDiv extends AlgoBase {
             this.setMapDot(-a_fracLen, iy);
         }
 
+        // 計算打ち切り後、被除数(origin_iy+1)にまだ下ろしていない桁が残っていれば
+        // 余りの行(iy)に全て追記する（ix1はループ未処理の先頭）
+        if (tateta && ix1 < 0) {
+            let appended = false;
+            for (let i = ix1; i < 0; ++i) {
+                // getMapDigit で実際にマップに存在する桁のみ取得
+                let digit = this.getMapDigit(i, origin_iy + 1);
+                if (digit === undefined)
+                    continue;
+                // 既に余りの行に書かれていない座標だけ追記
+                if (this.getMapDigit(i, iy) === undefined) {
+                    this.addCommand(['drawDigit', i, iy, digit]);
+                    this.mapDigit(i, iy, digit);
+                    appended = true;
+                }
+            }
+            // 残り桁を追記した場合、余りの行の小数点位置を設定する
+            if (appended && a_fracLen > 0 && this.getMapDot(iy) === undefined) {
+                this.addCommand(['drawDot', -a_fracLen, iy]);
+                this.setMapDot(-a_fracLen, iy);
+            }
+        }
+
         // 答えを求める
         let shou = this.fixAndReadRowNumber(origin_iy, false, true); // 商
         let amari;
@@ -398,10 +421,10 @@ class AlgoDiv extends AlgoBase {
         console.assert(this.testEntryEx('10', '40', '0.2 … 2', '1'));
         console.assert(this.testEntryEx('12345', '67', '184.25 … 0.25', '2'));
         console.assert(this.testEntryEx('1', '0.3', '3.3 … 0.01', '1'));
-        console.assert(this.testEntryEx('123.55', '789', '0.1 … 44.65', '1')); // FIXME
-        console.assert(this.testEntryEx('12.345', '1', '12.34 … 0.005', '2')); // FIXME
-        console.assert(this.testEntryEx('12.355', '78', '0.1 … 4.555', '1')); // FIXME
-        console.assert(this.testEntryEx('12.355', '7', '1.7 … 0.455', '1')); // FIXME
+        console.assert(this.testEntryEx('123.55', '789', '0.1 … 44.65', '1'));
+        console.assert(this.testEntryEx('12.345', '1', '12.34 … 0.005', '2'));
+        console.assert(this.testEntryEx('12.355', '78', '0.1 … 4.555', '1'));
+        console.assert(this.testEntryEx('12.355', '7', '1.7 … 0.455', '1'));
         this.reset();
     }
 }
