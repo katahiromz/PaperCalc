@@ -105,8 +105,7 @@ class AlgoDiv extends AlgoBase {
                 this.addCommand(['step']);
 
                 // 行iyから数を読み込む
-                let digits = this.readRowNumber(iy, true);
-                console.log(digit, digits);
+                let digits = normalizeUnsignedNumber(this.readRowNumber(iy, true));
                 if (comparePositiveNumbers(digits, b_digits) < 0) {
                     this.addCommand(['output', `${digits} は ${b_digits} より小さいので 0 を立てます。`]);
                     this.addCommand(['drawDigit', i, origin_iy, '0']);
@@ -152,6 +151,7 @@ class AlgoDiv extends AlgoBase {
                 for (let k = -a_digits.length; k <= i; ++k) {
                     digits += this.mapDigit(k, origin_iy + 1);
                 }
+                digits = normalizeUnsignedNumber(digits);
 
                 if (comparePositiveNumbers(digits, b_digits) < 0) {
                     if (foundDot) {
