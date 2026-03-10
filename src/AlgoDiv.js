@@ -63,15 +63,25 @@ class AlgoDiv extends AlgoBase {
                 }
                 this.clearMapDot(origin_iy + 1);
             }
+            let ix = this.min_x(origin_iy + 1);
+            while (this.mapDigit(ix, origin_iy + 1) === '0') {
+                let digit = this.mapDigit(ix + 1, origin_iy + 1);
+                if (digit === undefined)
+                    break;
+                this.setMapDigit(ix, origin_iy + 1, undefined);
+                this.addCommand(['backslashDigit', ix, origin_iy + 1]);
+                ++ix;
+                b_digits = b_digits.replace(/^0/, '');
+            }
         }
         // 左の桁から見ていく
         let iy = origin_iy + 2;
         let foundDot = false; // 小数点を見つけた？フラグ変数
-        let foundNonZero = false; // 非ゼロを見つけた？フラグ変数
+        let tateta = false; // 立てた？フラグ変数
         for (let i = -a_digits.length; i < ix1; ++i) {
             // 小数点を確認
             if (!foundDot && i === fixedDotPos) {
-                if (!foundNonZero) {
+                if (!tateta) {
                     this.addCommand(['drawDigit', i - 1, origin_iy, '0']);
                     this.mapDigit(i - 1, origin_iy, '0');
                 }
@@ -80,7 +90,7 @@ class AlgoDiv extends AlgoBase {
                 foundDot = true;
             }
 
-            if (foundNonZero) { // 非ゼロを見つけた
+            if (tateta) { // 立てた？
                 // 数を下ろす
                 let digit = this.mapDigit(i, origin_iy + 1);
                 this.addCommand(['output', `わられる数から ${digit} を下ろします。`]);
@@ -125,7 +135,8 @@ class AlgoDiv extends AlgoBase {
                 this.addCommand(['step']);
 
                 this.addCommand(['output', `${digits} 引く ${BigInt(b_digits) * count} を計算します。`]);
-                this.autoPutDigitsEx(num1.toString(), i + 1, iy);
+                if (num1.toString() !== '0')
+                    this.autoPutDigitsEx(num1.toString(), i + 1, iy);
             } else { // 非ゼロを見つけてない
                 // (origin_iy + 1)から数を読み込む
                 let digits = '';
@@ -153,10 +164,13 @@ class AlgoDiv extends AlgoBase {
                     num1 -= num2;
                     ++count;
                 }
+
+                // 立てる
                 this.addCommand(['output', `${digits} の中に ${b_digits} が ${count} 個ありますので、${count} を立てます。`]);
                 this.addCommand(['drawDigit', i, origin_iy, count.toString()]);
                 this.mapDigit(i, origin_iy, count.toString());
                 this.addCommand(['step']);
+                tateta = true; // 立てた？
 
                 // 掛け算を計算する
                 this.addCommand(['output', `${b_digits} × ${count} を計算します。`]);
@@ -171,13 +185,13 @@ class AlgoDiv extends AlgoBase {
 
                 // 引き算を計算する
                 this.addCommand(['output', `${digits} 引く ${BigInt(b_digits) * count} を計算します。`]);
-                this.autoPutDigitsEx(num1.toString(), i + 1, iy);
-                foundNonZero = true; // 非ゼロを見つけた
+                if (num1.toString() !== '0')
+                    this.autoPutDigitsEx(num1.toString(), i + 1, iy);
             }
         }
 
         // 数が立てられなかったときにゼロを追加
-        if (!foundDot && !foundNonZero) {
+        if (!tateta) {
             this.addCommand(['drawDigit', fixedDotPos - 1, origin_iy, '0']);
             this.mapDigit(fixedDotPos - 1, origin_iy, '0');
         }
@@ -367,11 +381,11 @@ class AlgoDiv extends AlgoBase {
         console.assert(this.testEntryEx('10', '40', '0.250', '3'));
         console.assert(this.testEntryEx('0.1', '0.4', '0.2 … 0.02', '1'));
         console.assert(this.testEntryEx('0.1', '2', '0.0500', '4'));
-        console.assert(this.testEntryEx('999', '0.1', '9990', '0')); //
-        console.assert(this.testEntryEx('999', '0.1', '9990.00', '2')); //
+        console.assert(this.testEntryEx('999', '0.1', '9990', '0'));
+        console.assert(this.testEntryEx('999', '0.1', '9990.00', '2'));
         console.assert(this.testEntryEx('99999999999999999999', '99999999999999999999', '1.0', '1'));
         console.assert(this.testEntryEx('99.9', '990', '0 … 99.9', '0'));
-        console.assert(this.testEntryEx('12.355', '789', '0.0 … 12.355', '1')); //
+        console.assert(this.testEntryEx('12.355', '789', '0.0 … 12.355', '1'));
         console.assert(this.testEntryEx('7.955', '7.89', '1.00 … 0.065', '2'));
         console.assert(this.testEntryEx('0.3', '0.25', '1 … 0.05'));
         console.assert(this.testEntryEx('1.3', '0.25', '5 … 0.05'));
