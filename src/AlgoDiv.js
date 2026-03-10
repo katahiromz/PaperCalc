@@ -63,6 +63,7 @@ class AlgoDiv extends AlgoBase {
                 }
                 this.clearMapDot(origin_iy + 1);
             }
+            // わる数の先行するゼロを消す
             let ix = this.min_x(origin_iy + 1);
             while (this.mapDigit(ix, origin_iy + 1) === '0') {
                 let digit = this.mapDigit(ix + 1, origin_iy + 1);
@@ -71,7 +72,7 @@ class AlgoDiv extends AlgoBase {
                 this.setMapDigit(ix, origin_iy + 1, undefined);
                 this.addCommand(['backslashDigit', ix, origin_iy + 1]);
                 ++ix;
-                b_digits = b_digits.replace(/^0/, '');
+                b_digits = b_digits.replace(/^0/, ''); // ついでに b_digitsも修正
             }
         }
         // 左の桁から見ていく
@@ -212,12 +213,15 @@ class AlgoDiv extends AlgoBase {
         if (comparePositiveNumbers(amari, '0') == 0) { // 余りがゼロの場合
             this.addCommand(['output', `商は ${shou} です。あまりはありません。`]);
             this.answer = shou;
-            return this.answer;
         } else {
             this.addCommand(['output', `商は ${shou}、あまりは ${amari} です。`]);
             this.answer = `${shou} … ${amari}`;
-            return this.answer;
         }
+
+        // 答えを表示する
+        let { x, y } = this.convert3(0, iy + 2);
+        this.addCommand(['drawCenterText', y, `${a} ÷ ${b} = ${this.answer}`]);
+        return this.answer;
     }
     // コマンドの構築
     buildCommands() {
