@@ -367,11 +367,11 @@ class AlgoDiv extends AlgoBase {
         console.assert(this.testEntryEx('10', '40', '0.250', '3'));
         console.assert(this.testEntryEx('0.1', '0.4', '0.2 … 0.02', '1'));
         console.assert(this.testEntryEx('0.1', '2', '0.0500', '4'));
-        console.assert(this.testEntryEx('999', '0.1', '9990', '0'));
-        console.assert(this.testEntryEx('999', '0.1', '9990.00', '2'));
+        console.assert(this.testEntryEx('999', '0.1', '9990', '0')); //
+        console.assert(this.testEntryEx('999', '0.1', '9990.00', '2')); //
         console.assert(this.testEntryEx('99999999999999999999', '99999999999999999999', '1.0', '1'));
         console.assert(this.testEntryEx('99.9', '990', '0 … 99.9', '0'));
-        console.assert(this.testEntryEx('12.355', '789', '0.0 … 12.355', '1'));
+        console.assert(this.testEntryEx('12.355', '789', '0.0 … 12.355', '1')); //
         console.assert(this.testEntryEx('7.955', '7.89', '1.00 … 0.065', '2'));
         console.assert(this.testEntryEx('0.3', '0.25', '1 … 0.05'));
         console.assert(this.testEntryEx('1.3', '0.25', '5 … 0.05'));
