@@ -8,7 +8,9 @@ PaperCalcは、JavaScriptで自動的に筆算を行うプログラムです。
 
 - デモ： https://katahiromz.github.io/paper-calc/
 
-<img src="screenshot.png" alt="[スクリーンショット]" align="center" />
+<p align="center">
+  <img src="screenshot.png" alt="[スクリーンショット]" />
+</p>
 
 ## Development Setup
 
