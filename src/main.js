@@ -545,7 +545,10 @@ document.addEventListener('DOMContentLoaded', function () {
         if (algorithm) {
             algorithm.stop();
             algorithm.clearPaper();
+            algorithm = null;
         }
+        if (!validateInput(true))
+            return;
         start_button.disabled = false;
         stop_button.disabled = true;
         next_step_button.disabled = false;
