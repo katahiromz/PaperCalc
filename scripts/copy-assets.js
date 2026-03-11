@@ -20,7 +20,7 @@ function copyRecursive(src, dest) {
   }
 }
 
-const assets = ['index.html', 'main.css'];
+const assets = ['index.html', 'main.css', 'manifest.json'];
 assets.forEach(file => {
   copyRecursive(path.join('src', file), path.join('dist', file));
   console.log(`Copied: src/${file} -> dist/${file}`);
