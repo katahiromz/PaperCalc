@@ -137,7 +137,7 @@ class AlgoDiv extends AlgoBase {
                 let ix0 = this.min_x(iy);
                 ++iy;
                 this.addCommand(['output', `引き算の線を描きます。`]);
-                if (Math.abs(ix0, Math.max(ix1, 0)) == 1)
+                if (Math.abs(ix0 - Math.max(ix1, 0)) == 1)
                     this.addCommand(['drawLine', ix0 - 1, iy, Math.max(ix1, 0), iy]);
                 else
                     this.addCommand(['drawLine', ix0, iy, Math.max(ix1, 0), iy]);
