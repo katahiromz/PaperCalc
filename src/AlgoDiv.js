@@ -134,13 +134,9 @@ class AlgoDiv extends AlgoBase {
                 this.autoDigitMul(b_digits, count.toString(), i, iy);
 
                 // 引き算の線を引く
-                let ix0 = this.min_x(iy);
                 ++iy;
                 this.addCommand(['output', `引き算の線を描きます。`]);
-                if (Math.abs(ix0 - Math.max(ix1, 0)) <= 2)
-                    this.addCommand(['drawLine', ix0 - 1, iy, Math.max(ix1, 0), iy]);
-                else
-                    this.addCommand(['drawLine', ix0, iy, Math.max(ix1, 0), iy]);
+                this.addCommand(['drawLine', -a_digits.length, iy, Math.max(ix1, 0), iy]);
                 this.addCommand(['step']);
 
                 this.addCommand(['output', `${digits} - ${BigInt(b_digits) * count} = ${num1.toString()}`]);
@@ -186,13 +182,9 @@ class AlgoDiv extends AlgoBase {
                 this.autoDigitMul(b_digits, count.toString(), i, iy);
 
                 // 引き算の線を引く
-                let ix0 = this.min_x(iy);
                 ++iy;
                 this.addCommand(['output', `引き算の線を描きます。`]);
-                if (Math.abs(ix0 - Math.max(ix1, 0)) <= 2)
-                    this.addCommand(['drawLine', ix0 - 1, iy, Math.max(ix1, 0), iy]);
-                else
-                    this.addCommand(['drawLine', ix0, iy, Math.max(ix1, 0), iy]);
+                this.addCommand(['drawLine', -a_digits.length, iy, Math.max(ix1, 0), iy]);
                 this.addCommand(['step']);
 
                 // 引き算を計算する
