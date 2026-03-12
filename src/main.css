@@ -223,7 +223,6 @@ input[type="number"] {
   outline: none;
   transition: border-color 0.2s, background-color 0.2s;
   min-height: var(--touch-min);
-  width: auto;
 }
 
 input[type="text"],
